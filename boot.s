@@ -33,6 +33,11 @@ header_%1:
     header %1, %2, %3
 %endmacro
 
+%macro defword 2-3 0
+    header %1, %2, %3
+    call DOCOL
+%endmacro
+
     org 0x7c00
 
     jmp 0:start
@@ -46,7 +51,11 @@ start:
     mov bp, 0x600
     mov di, 0x7e00
     call DOCOL
-    dw LIT, 'T'
+    dw LIT, 3
+    dw DOUBLE
+
+    dw LIT, '0'
+    dw PLUS
     dw EMIT
     dw HALT
 
@@ -75,6 +84,10 @@ defcode EMIT, "EMIT"
     pop bx
     jmp short NEXT
 
+defcode DUP, "DUP"
+    push bx
+    jmp short NEXT
+
 LIT:
     push bx
     lodsw
@@ -83,11 +96,21 @@ LIT:
 
 DOCOL:
     mov [bp], si
-    lea bp, [bp+2]
+    inc bp
+    inc bp
     pop si
 NEXT:
     lodsw
     jmp ax
+
+EXIT:
+    dec bp
+    dec bp
+    mov si, [bp]
+    jmp short NEXT
+
+defword DOUBLE, "DOUBLE"
+    dw DUP, PLUS, EXIT
 
     times 510 - ($ - $$) db 0
     db 0x55, 0xaa
