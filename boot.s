@@ -2,7 +2,6 @@
 ; SP = parameter stack pointer (grows downwards from 0x7c00 - just before the entrypoint)
 ; BP = return stack pointer (grows upwards from 0x500 - just after BDA)
 ; SI = execution pointer
-; DI = compilation pointer (HERE)
 ; BX = top of stack
 ;
 ; Dictionary structure:
@@ -18,9 +17,8 @@ F_LENMASK   equ 0x1f
 
 %define LINK 0
 
-TIB equ 0x7e00
-NTIB equ 0x7f00 ; db
-STATE equ 0x7f01
+TIB equ 0x600
+RS0 equ 0x700
 
 ; header PLUS, "+"
 ; header COLON, ":", F_IMMEDIATE
@@ -49,23 +47,101 @@ start:
     xor ax, ax
     mov ds, ax
     ; TODO: wrap with CLI/STI if bytes are to spare (:doubt:)
-    mov sp, 0x7c00
+    mov sp, 0x7bfe
     mov ss, ax
 
-    mov bp, 0x600
-    mov di, 0x7e00
-    call DOCOL
-    dw REFILL
-.wordloop:
-    dw _WORD
-    dw DUP
-    dw LIT, '0', PLUS, EMIT
-    dw ZBRANCH, .done
-    dw DROP
-    dw BRANCH, .wordloop
-
+; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
+; A function called twice has an overhead of 7 bytes (2 CALLs and a RET), but the duplicated
+; code is 6 bytes long.
+; TODO: underflow protection, if we can afford it
+REFILL:
+    mov di, TIB
+.loop:
+    mov ah, 0
+    int 0x16
+    cmp al, 0x0d
+    je short .enter
+    cmp al, 0x08
+    jne short .write
+    dec di
+    db 0xb1 ; skip the dec di below by loading its opcode to CL
+.write:
+    stosb
+    mov ah, 0x0e
+    xor bx, bx
+    int 0x10
+    jmp short .loop
+.enter:
+    xor ax, ax
+    stosb
+    mov [TO_IN], al
+INTERPRET:
+TO_IN equ $+1
+    mov si, TIB
+.skiploop:
+    lodsb
+    cmp al, 0x20
+    je short .skiploop
+    dec si
+    mov di, si
+    xor bx, bx
+.takeloop:
+    inc bx
+    lodsb
+    or al, al
+    jz short .done
+    cmp al, 0x20
+    jnz short .takeloop
 .done:
-    dw HALT
+    dec bx
+    jz short REFILL
+    dec si
+    xchg ax, si
+    mov [TO_IN], al
+; during FIND,
+; SI = dictionary pointer
+; DI = string pointer
+; CX = string length
+FIND:
+    mov cx, bx
+LATEST equ $+1
+    mov si, LAST_LINK
+.loop:
+    push si
+    push di
+    push cx
+    lodsw
+    lodsb
+    and al, F_HIDDEN | F_LENMASK
+    cmp al, cl
+    jne short .next
+    repe cmpsb
+    je short .found
+.next:
+    pop cx
+    pop di
+    pop si
+    mov si, [si]
+    jmp short .loop
+.found:
+    xchg ax, si
+    pop cx
+    pop di
+    pop si
+    test byte[si+2], 0xff
+STATE equ $-1 ; 0x$ff -> interpret, 0x$80 -> compile
+    jnz short EXECUTE
+    ; TODO
+EXECUTE:
+    mov bp, RS0
+    pop bx
+    mov si, .return
+    jmp ax
+.return:
+    dw .executed
+.executed:
+    push bx
+    jmp short INTERPRET
 
 defcode PLUS, "+"
     pop ax
@@ -91,6 +167,9 @@ defcode EMIT, "EMIT"
     int 0x10
     pop bx
     jmp short NEXT
+
+defword A, "A"
+    dw LIT, "A", EXIT
 
 defcode DUP, "DUP"
     push bx
@@ -133,63 +212,6 @@ EXIT:
     mov si, [bp]
     jmp short NEXT
 
-; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
-; A function called twice has an overhead of 7 bytes (2 CALLs and a RET), but the duplicated
-; code is 6 bytes long.
-; TODO: underflow protection
-defcode REFILL, "REFILL"
-    push di
-    push bx
-    mov di, TIB
-.loop:
-    mov ah, 0
-    int 0x16
-    cmp al, 0x0d
-    je short .enter
-    cmp al, 0x08
-    jne short .write
-    dec di
-    db 0xb1 ; skip the dec di below by loading its opcode to CL
-.write:
-    stosb
-    mov ah, 0x0e
-    xor bx, bx
-    int 0x10
-    jmp short .loop
-.enter:
-    xor ax, ax
-    stosb
-    mov [TO_IN], al
-    pop bx
-    pop di
-    jmp short NEXT
-
-defcode _WORD, "WORD"
-    push bx
-    mov dx, si
-TO_IN equ $+1
-    mov si, TIB
-.skiploop:
-    lodsb
-    cmp al, 0x20
-    je short .skiploop
-    dec si
-    push si
-    xor bx, bx
-.takeloop:
-    inc bx
-    lodsb
-    or al, al
-    jz short .done
-    cmp al, 0x20
-    jnz .takeloop
-.done:
-    dec bx
-    dec si
-    xchg ax, si
-    mov [TO_IN], al
-    mov si, dx
-    jmp short NEXT
-
+LAST_LINK equ LINK
     times 510 - ($ - $$) db 0
     db 0x55, 0xaa
