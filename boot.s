@@ -83,7 +83,7 @@ TO_IN equ $+1
     cmp al, 0x20
     je short .skiploop
     dec si
-    mov di, si
+    mov dx, si
     xor bx, bx
 .takeloop:
     inc bx
@@ -100,16 +100,15 @@ TO_IN equ $+1
     mov [TO_IN], al
 ; during FIND,
 ; SI = dictionary pointer
-; DI = string pointer
-; CX = string length
+; DX = string pointer
+; BX = string length
 FIND:
-    mov cx, bx
 LATEST equ $+1
     mov si, LAST_LINK
 .loop:
     push si
-    push di
-    push cx
+    mov cx, bx
+    mov di, dx
     lodsw
     lodsb
     and al, F_HIDDEN | F_LENMASK
@@ -118,15 +117,11 @@ LATEST equ $+1
     repe cmpsb
     je short .found
 .next:
-    pop cx
-    pop di
     pop si
     mov si, [si]
     jmp short .loop
 .found:
     xchg ax, si
-    pop cx
-    pop di
     pop si
     test byte[si+2], 0xff
 STATE equ $-1 ; 0x$ff -> interpret, 0x$80 -> compile
