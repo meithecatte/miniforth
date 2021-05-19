@@ -156,21 +156,39 @@ defcode MINUS, "-"
     xchg bx, ax
     jmp short NEXT
 
+defcode STORE, "!"
+    pop word [bx]
+    jmp short DROP
+
+defcode LOAD, "@"
+    mov bx, [bx]
+    jmp short NEXT
+
+defcode CSTORE, "c!"
+    pop ax
+    mov [bx], al
+    jmp short DROP
+
+defcode CLOAD, "c@"
+    mov bl, [bx]
+    mov bh, 0
+    jmp short NEXT
+
 defcode DUP, "dup"
     push bx
     jmp short NEXT
 
-ZBRANCH:
-    lodsw
-    or bx, bx
-    pop bx
-    jnz short NEXT
-    db 0xb1 ; skip the lodsw below by loading its opcode to CL
-
-BRANCH:
-    lodsw
-    xchg si, ax
-    jmp short NEXT
+;ZBRANCH:
+;    lodsw
+;    or bx, bx
+;    pop bx
+;    jnz short NEXT
+;    db 0xb1 ; skip the lodsw below by loading its opcode to CL
+;
+;BRANCH:
+;    lodsw
+;    xchg si, ax
+;    jmp short NEXT
 
 LIT:
     push bx
@@ -193,21 +211,25 @@ EXIT:
     mov si, [bp]
     jmp short NEXT
 
-defcode CCOMMA, "c,"
-    xchg ax, bx
-    mov di, [HERE]
-    stosb
-    mov [HERE], di
-    jmp short DROP
-
-defcode _HERE, "here"
+defcode DP, "dp"
     push bx
-    mov bx, [HERE]
+    mov bx, HERE
     jmp short NEXT
 
-defcode ALLOT, "allot"
-    add [HERE], bx
-    jmp short DROP
+defcode WP, "wp"
+    push bx
+    mov bx, LATEST
+    jmp short NEXT
+
+defcode _STATE, "state"
+    push bx
+    mov al, [STATE]
+    inc al
+    ; ZF set if interpret
+    mov bh, 0
+    setz bl
+    dec bx
+    jmp short NEXT
 
 defcode EMIT, "emit"
     xchg bx, ax
@@ -230,7 +252,23 @@ defcode RBRACK, "]"
     mov byte[STATE], 0x80
     jmp short NEXT
 
-; TODO: this might be smaller as a defword
+defcode SWAP, "swap"
+    pop ax
+    push bx
+    xchg ax, bx
+    jmp short NEXT
+
+; defword COLON takes 6 more bytes than defcode COLON
+; (the defword is untested and requires some unwritten primitives)
+; defword COLON, ":"
+;     dw _HERE
+;     dw _LATEST, LOAD, COMMA
+;     dw _LATEST, STORE
+;     dw __WORD, DUP, LIT, F_HIDDEN, PLUS, CCOMMA
+;     dw _HERE, SWAP, CMOVE
+;     dw LIT, 0xe8, CCOMMA
+;     dw LIT, DOCOL-2, HERE, MINUS, COMMA
+;     dw RBRACK, EXIT
 defcode COLON, ":"
     push bx
     push si
@@ -244,7 +282,7 @@ defcode COLON, ":"
     mov cx, bx
     mov si, dx
     rep movsb
-    mov al, 0xe8
+    mov al, 0xe8 ; call
     stosb
     mov ax, DOCOL-2
     sub ax, di
@@ -260,11 +298,6 @@ defcode SEMI, ";", F_IMMEDIATE
     mov ax, EXIT
     call _COMMA
     jmp short LBRACK
-
-defcode COMMA, ","
-    xchg ax, bx
-    call _COMMA
-    jmp short DROP
 
 _COMMA:
 HERE equ $+1
