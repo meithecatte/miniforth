@@ -77,28 +77,9 @@ REFILL:
     stosb
     mov [TO_IN], al
 INTERPRET:
-TO_IN equ $+1
-    mov si, TIB
-.skiploop:
-    lodsb
-    cmp al, 0x20
-    je short .skiploop
-    dec si
-    mov dx, si
-    xor bx, bx
-.takeloop:
-    inc bx
-    lodsb
-    or al, al
-    jz short .done
-    cmp al, 0x20
-    jnz short .takeloop
-.done:
-    dec bx
+    call _WORD
+    or bx, bx
     jz short REFILL
-    dec si
-    xchg ax, si
-    mov [TO_IN], al
 ; during FIND,
 ; SI = dictionary pointer
 ; DX = string pointer
@@ -129,7 +110,8 @@ LATEST equ $+1
     test byte[si+2], 0xff
 STATE equ $-1 ; 0xff -> interpret, 0x80 -> compile
     jnz short EXECUTE
-    ; TODO
+    call _COMMA
+    jmp short INTERPRET
 EXECUTE:
     pop bx
     mov si, .return
@@ -157,6 +139,11 @@ NUMBER:
     push bx
     jmp short INTERPRET
 COMPILE_LIT:
+    mov ax, LIT
+    call _COMMA
+    xchg ax, bx
+    call _COMMA
+    jmp short INTERPRET
 
 defcode PLUS, "+"
     pop ax
@@ -169,29 +156,8 @@ defcode MINUS, "-"
     xchg bx, ax
     jmp short NEXT
 
-defcode HALT, "HALT"
-    hlt
-    jmp short HALT
-
-defcode EMIT, "EMIT"
-    xchg bx, ax
-    xor bx, bx
-    mov ah, 0x0e
-    ; TODO: RBIL says some ancient BIOSes destroy BP. Save it on the stack if we
-    ; can afford it.
-    int 0x10
-    pop bx
-    jmp short NEXT
-
-defword A, "A"
-    dw LIT, "A", EXIT
-
-defcode DUP, "DUP"
+defcode DUP, "dup"
     push bx
-    jmp short NEXT
-
-defcode DROP, "DROP"
-    pop bx
     jmp short NEXT
 
 ZBRANCH:
@@ -226,6 +192,115 @@ EXIT:
     dec bp
     mov si, [bp]
     jmp short NEXT
+
+defcode CCOMMA, "c,"
+    xchg ax, bx
+    mov di, [HERE]
+    stosb
+    mov [HERE], di
+    jmp short DROP
+
+defcode _HERE, "here"
+    push bx
+    mov bx, [HERE]
+    jmp short NEXT
+
+defcode ALLOT, "allot"
+    add [HERE], bx
+    jmp short DROP
+
+defcode EMIT, "emit"
+    xchg bx, ax
+    xor bx, bx
+    mov ah, 0x0e
+    ; TODO: RBIL says some ancient BIOSes destroy BP. Save it on the stack if we
+    ; can afford it.
+    int 0x10
+    jmp short DROP
+
+defcode DROP, "drop"
+    pop bx
+    jmp short NEXT
+
+defcode LBRACK, "[", F_IMMEDIATE
+    mov byte[STATE], 0xff
+    jmp short NEXT
+
+defcode RBRACK, "]"
+    mov byte[STATE], 0x80
+    jmp short NEXT
+
+; TODO: this might be smaller as a defword
+defcode COLON, ":"
+    push bx
+    push si
+    mov ax, [LATEST]
+    mov di, [HERE]
+    mov [LATEST], di
+    stosw
+    call _WORD
+    lea ax, [bx + F_HIDDEN]
+    stosb
+    mov cx, bx
+    mov si, dx
+    rep movsb
+    mov al, 0xe8
+    stosb
+    mov ax, DOCOL-2
+    sub ax, di
+    stosw
+    pop si
+    pop bx
+    mov [HERE], di
+    jmp short RBRACK
+
+defcode SEMI, ";", F_IMMEDIATE
+    mov di, [LATEST]
+    and byte[di+2], ~F_HIDDEN
+    mov byte[STATE], 0xff
+    push bx
+    mov bx, EXIT
+    jmp short COMMA
+
+defcode COMMA, ","
+    xchg ax, bx
+    call _COMMA
+    jmp short DROP
+
+_COMMA:
+HERE equ $+1
+    mov di, 0x7e00
+    stosw
+    mov [HERE], di
+    ret
+
+; returns
+; DX = pointer to string
+; BX = string length
+; clobbers SI
+_WORD:
+TO_IN equ $+1
+    mov si, TIB
+.skiploop:
+    lodsb
+    cmp al, 0x20
+    je short .skiploop
+    dec si
+    mov dx, si
+    xor bx, bx
+.takeloop:
+    inc bx
+    lodsb
+    or al, al
+    jz short .done
+    cmp al, 0x20
+    jnz short .takeloop
+.done:
+    dec bx
+    dec si
+    xchg ax, si
+    mov [TO_IN], al
+    ret
 
 LAST_LINK equ LINK
     times 510 - ($ - $$) db 0
