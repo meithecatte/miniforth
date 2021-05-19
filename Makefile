@@ -4,3 +4,6 @@ boot.bin: boot.s compress.py
 
 run: boot.bin
 	qemu-system-i386 -curses -hda boot.bin
+
+test: boot.bin
+	qemu-system-i386 -curses -hda test.img

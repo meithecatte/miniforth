@@ -301,15 +301,15 @@ defcode CLOAD, "c@"
 defcode DUP, "dup"
     push bx
 
-defcode DP, "dp"
+defcode VARS, "v" ; ( -- DP WP >IN )
     push bx
     mov bx, HERE
-
-defcode WP, "wp"
     push bx
     mov bx, LATEST
+    push bx
+    mov bx, TO_IN
 
-defcode _STATE, "state"
+defcode _STATE, "st"
     push bx
     mov al, [STATE]
     inc al
@@ -330,16 +330,28 @@ defcode EMIT, "emit"
     int 0x10
     pop bx
 
+defcode SWAP, "swap"
+    pop ax
+    push bx
+    xchg ax, bx
+
+defcode TO_R, ">r"
+    mov [bp], bx
+    inc bp
+    inc bp
+    pop bx
+
+defcode FROM_R, "r>"
+    dec bp
+    dec bp
+    push bx
+    mov bx, [bp]
+
 defcode LBRACK, "[", F_IMMEDIATE
     mov byte[STATE], 0xff
 
 defcode RBRACK, "]"
     mov byte[STATE], 0x80
-
-defcode SWAP, "swap"
-    pop ax
-    push bx
-    xchg ax, bx
 
 ; defword COLON takes 6 more bytes than defcode COLON
 ; (the defword is untested and requires some unwritten primitives)
