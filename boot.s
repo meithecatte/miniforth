@@ -15,32 +15,29 @@ F_IMMEDIATE equ 0x80
 F_HIDDEN    equ 0x40
 F_LENMASK   equ 0x1f
 
-%define LINK 0
-
 TIB equ 0x600
 BLKBUF equ 0x700
 BLKEND equ 0xb00
 PACKET equ 0xb01
 RS0 equ 0xc00
 
-; header PLUS, "+"
-; header COLON, ":", F_IMMEDIATE
-%macro header 2-3 0
-header_%1:
-    dw LINK
-%define LINK header_%1
+SPECIAL_BYTE equ 0x90
+
+%assign savings 0
+
+%macro compression_sentinel 0
+%assign savings savings+4
+    db SPECIAL_BYTE
+    dd 0xdeadbeef
+%endmacro
+
+; defcode PLUS, "+"
+; defcode COLON, ":", F_IMMEDIATE
+%macro defcode 2-3 0
+    compression_sentinel
 %strlen namelength %2
     db %3 | namelength, %2
 %1:
-%endmacro
-
-%macro defcode 2-3 0
-    header %1, %2, %3
-%endmacro
-
-%macro defword 2-3 0
-    header %1, %2, %3
-    call DOCOL
 %endmacro
 
     org 0x7c00
@@ -53,6 +50,24 @@ start:
     mov sp, 0x7bfe
     mov ss, ax
     mov bp, RS0
+
+    mov si, CompressedData
+    mov di, CompressedBegin
+    mov cx, COMPRESSED_SIZE
+.decompress:
+    lodsb
+    cmp al, SPECIAL_BYTE
+    jnz short .not_special
+    mov ax, 0xffad ; lodsw / jmp ax
+    stosw
+    mov al, 0xe0
+    stosb
+    call MakeLink
+    db 0xb1
+.not_special:
+    stosb
+    loop .decompress
+
     mov [DRIVE_NUMBER], dl
 
 ; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
@@ -90,7 +105,7 @@ INTERPRET:
 ; BX = string length
 FIND:
 LATEST equ $+1
-    mov si, LAST_LINK
+    mov si, 0
 .loop:
     push si
     mov cx, bx
@@ -149,69 +164,6 @@ COMPILE_LIT:
     call _COMMA
     jmp short INTERPRET
 
-defcode DISKLOAD, "load"
-    mov di, BLKEND
-    mov ax, 0x1000
-    stosw
-    mov ah, 2
-    stosw
-    stosb
-    mov ah, BLKBUF >> 8
-    stosw
-    xor ax, ax
-    stosw
-    shl bx, 1
-    xchg ax, bx
-    stosw
-    xchg ax, bx
-    stosw
-    stosw
-    stosw
-    push si
-    mov si, PACKET
-DRIVE_NUMBER equ $+1
-    mov dl, 0
-    mov ah, 0x42
-    int 0x13
-    pop si
-    jc short jmpDROP
-    mov word[TO_IN], BLKBUF
-    jmp short jmpDROP
-
-defcode PLUS, "+"
-    pop ax
-    add bx, ax
-    jmp short NEXT
-
-defcode MINUS, "-"
-    pop ax
-    sub ax, bx
-    xchg bx, ax
-    jmp short NEXT
-
-defcode STORE, "!"
-    pop word [bx]
-jmpDROP:
-    jmp short DROP
-
-defcode LOAD, "@"
-    mov bx, [bx]
-    jmp short NEXT
-
-defcode CSTORE, "c!"
-    pop ax
-    mov [bx], al
-    jmp short DROP
-
-defcode CLOAD, "c@"
-    mov bl, [bx]
-    mov bh, 0
-    jmp short NEXT
-
-defcode DUP, "dup"
-    push bx
-    jmp short NEXT
-
 ;ZBRANCH:
 ;    lodsw
 ;    or bx, bx
@@ -224,118 +176,9 @@ defcode DUP, "dup"
 ;    xchg si, ax
 ;    jmp short NEXT
 
-LIT:
-    push bx
-    lodsw
-    xchg bx, ax
-    jmp short NEXT
-
-EXIT:
-    dec bp
-    dec bp
-    mov si, [bp]
-    jmp short NEXT
-
-defcode DP, "dp"
-    push bx
-    mov bx, HERE
-    jmp short NEXT
-
-defcode WP, "wp"
-    push bx
-    mov bx, LATEST
-    jmp short NEXT
-
-defcode _STATE, "state"
-    push bx
-    mov al, [STATE]
-    inc al
-    ; ZF set if interpret
-    mov bh, 0
-    setz bl
-    dec bx
-    jmp short NEXT
-
-DOCOL:
-    mov [bp], si
-    inc bp
-    inc bp
-    pop si
-NEXT:
-    lodsw
-    jmp ax
-
-defcode DROP, "drop"
-    pop bx
-    jmp short NEXT
-
-defcode EMIT, "emit"
-    xchg bx, ax
-    xor bx, bx
-    mov ah, 0x0e
-    ; TODO: RBIL says some ancient BIOSes destroy BP. Save it on the stack if we
-    ; can afford it.
-    int 0x10
-    jmp short DROP
-
-defcode LBRACK, "[", F_IMMEDIATE
-    mov byte[STATE], 0xff
-    jmp short NEXT
-
-defcode RBRACK, "]"
-    mov byte[STATE], 0x80
-    jmp short NEXT
-
-defcode SWAP, "swap"
-    pop ax
-    push bx
-    xchg ax, bx
-    jmp short NEXT
-
-; defword COLON takes 6 more bytes than defcode COLON
-; (the defword is untested and requires some unwritten primitives)
-; defword COLON, ":"
-;     dw _HERE
-;     dw _LATEST, LOAD, COMMA
-;     dw _LATEST, STORE
-;     dw __WORD, DUP, LIT, F_HIDDEN, PLUS, CCOMMA
-;     dw _HERE, SWAP, CMOVE
-;     dw LIT, 0xe8, CCOMMA
-;     dw LIT, DOCOL-2, HERE, MINUS, COMMA
-;     dw RBRACK, EXIT
-defcode COLON, ":"
-    push bx
-    push si
-    mov ax, [LATEST]
-    mov di, [HERE]
-    mov [LATEST], di
-    stosw
-    call _WORD
-    lea ax, [bx + F_HIDDEN]
-    stosb
-    mov cx, bx
-    mov si, dx
-    rep movsb
-    mov al, 0xe8 ; call
-    stosb
-    mov ax, DOCOL-2
-    sub ax, di
-    stosw
-    pop si
-    pop bx
-    mov [HERE], di
-    jmp short RBRACK
-
-defcode SEMI, ";", F_IMMEDIATE
-    mov di, [LATEST]
-    and byte[di+2], ~F_HIDDEN
-    mov ax, EXIT
-    call _COMMA
-    jmp short LBRACK
-
 _COMMA:
 HERE equ $+1
-    mov di, 0x7e00
+    mov di, CompressedEnd
     stosw
     mov [HERE], di
     ret
@@ -367,11 +210,175 @@ TO_IN equ $+1
     mov [TO_IN], si
     ret
 
-LAST_LINK equ LINK
-    times 510 - ($ - $$) db 0
-    db 0x55, 0xaa
+MakeLink:
+    mov ax, [LATEST]
+    mov [LATEST], di
+    stosw
+    ret
 
-    times 512 db 0
-    incbin "test.fth"
-    times 2048 - 6 - ($ - $$) db ' '
-    db 'say-hi'
+CompressedData:
+    times COMPRESSED_SIZE db 0xcc
+
+; Invariant: due to the use of compression_sentinel without a dictionary header following it,
+; the first byte of LIT and EXIT must have the 0x40 (F_HIDDEN) bit set.
+
+DOCOL:
+    mov [bp], si
+    inc bp
+    inc bp
+    pop si
+CompressedBegin:
+    compression_sentinel
+
+LIT:
+    push bx
+    lodsw
+    xchg bx, ax
+    compression_sentinel
+
+EXIT:
+    dec bp
+    dec bp
+    mov si, [bp]
+
+defcode DISKLOAD, "load"
+    mov di, BLKEND
+    mov ax, 0x1000
+    stosw
+    mov ah, 2
+    stosw
+    stosb
+    mov ah, BLKBUF >> 8
+    stosw
+    xor ax, ax
+    stosw
+    shl bx, 1
+    xchg ax, bx
+    stosw
+    xchg ax, bx
+    stosw
+    stosw
+    stosw
+    push si
+    mov si, PACKET
+DRIVE_NUMBER equ $+1
+    mov dl, 0
+    mov ah, 0x42
+    int 0x13
+    pop si
+    jc short .done
+    mov word[TO_IN], BLKBUF
+.done:
+    pop bx
+
+defcode PLUS, "+"
+    pop ax
+    add bx, ax
+
+defcode MINUS, "-"
+    pop ax
+    sub ax, bx
+    xchg bx, ax
+
+defcode STORE, "!"
+    pop word [bx]
+    pop bx
+
+defcode LOAD, "@"
+    mov bx, [bx]
+
+defcode CSTORE, "c!"
+    pop ax
+    mov [bx], al
+    pop bx
+
+defcode CLOAD, "c@"
+    mov bl, [bx]
+    mov bh, 0
+
+defcode DUP, "dup"
+    push bx
+
+defcode DP, "dp"
+    push bx
+    mov bx, HERE
+
+defcode WP, "wp"
+    push bx
+    mov bx, LATEST
+
+defcode _STATE, "state"
+    push bx
+    mov al, [STATE]
+    inc al
+    ; ZF set if interpret
+    mov bh, 0
+    setz bl
+    dec bx
+
+defcode DROP, "drop"
+    pop bx
+
+defcode EMIT, "emit"
+    xchg bx, ax
+    xor bx, bx
+    mov ah, 0x0e
+    ; TODO: RBIL says some ancient BIOSes destroy BP. Save it on the stack if we
+    ; can afford it.
+    int 0x10
+    pop bx
+
+defcode LBRACK, "[", F_IMMEDIATE
+    mov byte[STATE], 0xff
+
+defcode RBRACK, "]"
+    mov byte[STATE], 0x80
+
+defcode SWAP, "swap"
+    pop ax
+    push bx
+    xchg ax, bx
+
+; defword COLON takes 6 more bytes than defcode COLON
+; (the defword is untested and requires some unwritten primitives)
+; defword COLON, ":"
+;     dw _HERE
+;     dw _LATEST, LOAD, COMMA
+;     dw _LATEST, STORE
+;     dw __WORD, DUP, LIT, F_HIDDEN, PLUS, CCOMMA
+;     dw _HERE, SWAP, CMOVE
+;     dw LIT, 0xe8, CCOMMA
+;     dw LIT, DOCOL-2, HERE, MINUS, COMMA
+;     dw RBRACK, EXIT
+defcode COLON, ":"
+    push bx
+    push si
+    mov di, [HERE]
+    call MakeLink
+    call _WORD
+    lea ax, [bx + F_HIDDEN]
+    stosb
+    mov cx, bx
+    mov si, dx
+    rep movsb
+    mov al, 0xe8 ; call
+    stosb
+    mov ax, DOCOL-2
+    sub ax, di
+    stosw
+    pop si
+    pop bx
+    mov [HERE], di
+    jmp short RBRACK
+
+defcode SEMI, ";", F_IMMEDIATE
+    mov di, [LATEST]
+    and byte[di+2], ~F_HIDDEN
+    mov ax, EXIT
+    call _COMMA
+    jmp short LBRACK
+; INVARIANT: last word in compressed block does not rely on having NEXT appended by
+; decompressor
+CompressedEnd:
+
+COMPRESSED_SIZE equ CompressedEnd - CompressedBegin - savings
