@@ -257,10 +257,9 @@ defcode COLON, ":"
 defcode SEMI, ";", F_IMMEDIATE
     mov di, [LATEST]
     and byte[di+2], ~F_HIDDEN
-    mov byte[STATE], 0xff
-    push bx
-    mov bx, EXIT
-    jmp short COMMA
+    mov ax, EXIT
+    call _COMMA
+    jmp short LBRACK
 
 defcode COMMA, ","
     xchg ax, bx
