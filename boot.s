@@ -49,6 +49,7 @@ start:
     ; TODO: wrap with CLI/STI if bytes are to spare (:doubt:)
     mov sp, 0x7bfe
     mov ss, ax
+    mov bp, RS0
 
 ; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
 ; A function called twice has an overhead of 7 bytes (2 CALLs and a RET), but the duplicated
@@ -109,6 +110,8 @@ LATEST equ $+1
     push si
     mov cx, bx
     mov di, dx
+    or si, si
+    jz short NUMBER
     lodsw
     lodsb
     and al, F_HIDDEN | F_LENMASK
@@ -124,11 +127,10 @@ LATEST equ $+1
     xchg ax, si
     pop si
     test byte[si+2], 0xff
-STATE equ $-1 ; 0x$ff -> interpret, 0x$80 -> compile
+STATE equ $-1 ; 0xff -> interpret, 0x80 -> compile
     jnz short EXECUTE
     ; TODO
 EXECUTE:
-    mov bp, RS0
     pop bx
     mov si, .return
     jmp ax
@@ -137,6 +139,24 @@ EXECUTE:
 .executed:
     push bx
     jmp short INTERPRET
+NUMBER:
+    pop si
+    mov si, dx
+    xor bx, bx
+    mov di, 10
+.loop:
+    mov ah, 0
+    lodsb
+    sub al, 0x30
+    xchg ax, bx
+    mul di
+    add bx, ax
+    loop .loop
+    cmp byte[STATE], 0x80
+    je short COMPILE_LIT
+    push bx
+    jmp short INTERPRET
+COMPILE_LIT:
 
 defcode PLUS, "+"
     pop ax
