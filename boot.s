@@ -73,7 +73,6 @@ start:
 ; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
 ; A function called twice has an overhead of 7 bytes (2 CALLs and a RET), but the duplicated
 ; code is 6 bytes long.
-; TODO: underflow protection, if we can afford it
 REFILL:
     mov di, TIB
     mov [TO_IN], di
@@ -84,6 +83,9 @@ REFILL:
     je short .enter
     cmp al, 0x08
     jne short .write
+    mov cx, di
+    or cl, cl
+    jz short .loop
     dec di
     db 0xb1 ; skip the dec di below by loading its opcode to CL
 .write:
