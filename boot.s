@@ -18,7 +18,10 @@ F_LENMASK   equ 0x1f
 %define LINK 0
 
 TIB equ 0x600
-RS0 equ 0x700
+BLKBUF equ 0x700
+BLKEND equ 0xb00
+PACKET equ 0xb01
+RS0 equ 0xc00
 
 ; header PLUS, "+"
 ; header COLON, ":", F_IMMEDIATE
@@ -50,6 +53,7 @@ start:
     mov sp, 0x7bfe
     mov ss, ax
     mov bp, RS0
+    mov [DRIVE_NUMBER], dl
 
 ; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
 ; A function called twice has an overhead of 7 bytes (2 CALLs and a RET), but the duplicated
@@ -57,6 +61,7 @@ start:
 ; TODO: underflow protection, if we can afford it
 REFILL:
     mov di, TIB
+    mov [TO_IN], di
 .loop:
     mov ah, 0
     int 0x16
@@ -75,7 +80,6 @@ REFILL:
 .enter:
     xor ax, ax
     stosb
-    mov [TO_IN], al
 INTERPRET:
     call _WORD
     or bx, bx
@@ -145,6 +149,35 @@ COMPILE_LIT:
     call _COMMA
     jmp short INTERPRET
 
+defcode DISKLOAD, "load"
+    mov di, BLKEND
+    mov ax, 0x1000
+    stosw
+    mov ah, 2
+    stosw
+    stosb
+    mov ah, BLKBUF >> 8
+    stosw
+    xor ax, ax
+    stosw
+    shl bx, 1
+    xchg ax, bx
+    stosw
+    xchg ax, bx
+    stosw
+    stosw
+    stosw
+    push si
+    mov si, PACKET
+DRIVE_NUMBER equ $+1
+    mov dl, 0
+    mov ah, 0x42
+    int 0x13
+    pop si
+    jc short jmpDROP
+    mov word[TO_IN], BLKBUF
+    jmp short jmpDROP
+
 defcode PLUS, "+"
     pop ax
     add bx, ax
@@ -158,6 +191,7 @@ defcode MINUS, "-"
 
 defcode STORE, "!"
     pop word [bx]
+jmpDROP:
     jmp short DROP
 
 defcode LOAD, "@"
@@ -196,15 +230,6 @@ LIT:
     xchg bx, ax
     jmp short NEXT
 
-DOCOL:
-    mov [bp], si
-    inc bp
-    inc bp
-    pop si
-NEXT:
-    lodsw
-    jmp ax
-
 EXIT:
     dec bp
     dec bp
@@ -231,6 +256,19 @@ defcode _STATE, "state"
     dec bx
     jmp short NEXT
 
+DOCOL:
+    mov [bp], si
+    inc bp
+    inc bp
+    pop si
+NEXT:
+    lodsw
+    jmp ax
+
+defcode DROP, "drop"
+    pop bx
+    jmp short NEXT
+
 defcode EMIT, "emit"
     xchg bx, ax
     xor bx, bx
@@ -239,10 +277,6 @@ defcode EMIT, "emit"
     ; can afford it.
     int 0x10
     jmp short DROP
-
-defcode DROP, "drop"
-    pop bx
-    jmp short NEXT
 
 defcode LBRACK, "[", F_IMMEDIATE
     mov byte[STATE], 0xff
@@ -330,10 +364,14 @@ TO_IN equ $+1
 .done:
     dec bx
     dec si
-    xchg ax, si
-    mov [TO_IN], al
+    mov [TO_IN], si
     ret
 
 LAST_LINK equ LINK
     times 510 - ($ - $$) db 0
     db 0x55, 0xaa
+
+    times 512 db 0
+    incbin "test.fth"
+    times 2048 - 6 - ($ - $$) db ' '
+    db 'say-hi'
