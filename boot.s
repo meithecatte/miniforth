@@ -49,10 +49,13 @@ SPECIAL_BYTE equ 0x90
 start:
     xor ax, ax
     mov ds, ax
+    mov es, ax
     ; TODO: wrap with CLI/STI if bytes are to spare (:doubt:)
-    mov sp, 0x7bfe
+    mov sp, 0x7c00
     mov ss, ax
     mov bp, RS0
+
+    push word BASE
 
     mov si, CompressedData
     mov di, CompressedBegin
@@ -132,11 +135,16 @@ NUMBER:
     mov si, dx
     mov cx, bx
     xor bx, bx
-    mov di, 10
+BASE equ $+1
+    mov di, 16
 .loop:
     mov ah, 0
     lodsb
-    sub al, 0x30
+    sub al, "0"
+    cmp al, 9
+    jbe .digit_ok
+    sub al, "A" - "0" - 10
+.digit_ok
     xchg ax, bx
     mul di
     add bx, ax
@@ -198,7 +206,7 @@ _WORD:
     ; uses DI instead of SI :(
 .skiploop:
     lodsb
-    cmp al, 0x20
+    cmp al, " "
     je short .skiploop
     dec si
     mov dx, si
@@ -208,7 +216,7 @@ _WORD:
     lodsb
     or al, al
     jz short .done
-    cmp al, 0x20
+    cmp al, " "
     jnz short .takeloop
 .done:
     dec bx
