@@ -19,6 +19,9 @@ TIB equ 0x600
 BLKBUF equ 0x700
 BLKEND equ 0xb00
 PACKET equ 0xb01
+LATEST equ 0xb12 ; dw
+HERE   equ 0xb14 ; dw
+TO_IN  equ 0xb16 ; dw
 RS0 equ 0xc00
 
 SPECIAL_BYTE equ 0x90
@@ -68,6 +71,7 @@ start:
     stosb
     loop .decompress
 
+    mov [HERE], di
     mov [DRIVE_NUMBER], dl
 
 ; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
@@ -106,8 +110,7 @@ INTERPRET:
 ; DX = string pointer
 ; BX = string length
 FIND:
-LATEST equ $+1
-    mov si, 0
+    mov si, [LATEST]
 .loop:
     push si
     mov cx, bx
@@ -180,8 +183,7 @@ EXECUTE:
 ;    jmp short NEXT
 
 _COMMA:
-HERE equ $+1
-    mov di, CompressedEnd
+    mov di, [HERE]
     stosw
     mov [HERE], di
     ret
@@ -191,8 +193,7 @@ HERE equ $+1
 ; BX = string length
 ; clobbers SI
 _WORD:
-TO_IN equ $+1
-    mov si, TIB
+    mov si, [TO_IN]
     ; repe scasb would probably save some bytes if the registers worked out - scasb
     ; uses DI instead of SI :(
 .skiploop:
@@ -303,14 +304,6 @@ defcode CLOAD, "c@"
 
 defcode DUP, "dup"
     push bx
-
-defcode VARS, "v" ; ( -- DP WP >IN )
-    push bx
-    mov bx, HERE
-    push bx
-    mov bx, LATEST
-    push bx
-    mov bx, TO_IN
 
 defcode _STATE, "st"
     push bx
