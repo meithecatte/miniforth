@@ -20,8 +20,7 @@ BLKBUF equ 0x700
 BLKEND equ 0xb00
 PACKET equ 0xb01
 LATEST equ 0xb12 ; dw
-HERE   equ 0xb14 ; dw
-TO_IN  equ 0xb16 ; dw
+TO_IN  equ 0xb14 ; dw
 RS0 equ 0xc00
 
 SPECIAL_BYTE equ 0x90
@@ -55,6 +54,7 @@ start:
     mov ss, ax
     mov bp, RS0
 
+    push word HERE
     push word BASE
 
     mov si, CompressedData
@@ -74,7 +74,6 @@ start:
     stosb
     loop .decompress
 
-    mov [HERE], di
     mov [DRIVE_NUMBER], dl
 
 ; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
@@ -140,10 +139,11 @@ BASE equ $+1
 .loop:
     mov ah, 0
     lodsb
+    or al, 0x20 ; to lowercase
     sub al, "0"
     cmp al, 9
     jbe .digit_ok
-    sub al, "A" - "0" - 10
+    sub al, "a" - "0" - 10
 .digit_ok
     xchg ax, bx
     mul di
@@ -191,7 +191,8 @@ EXECUTE:
 ;    jmp short NEXT
 
 _COMMA:
-    mov di, [HERE]
+HERE equ $+1
+    mov di, CompressedEnd
     stosw
     mov [HERE], di
     ret
