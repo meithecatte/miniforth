@@ -112,39 +112,22 @@ LATEST equ $+1
     push si
     mov cx, bx
     mov di, dx
-    or si, si
-    jz short NUMBER
     lodsw
     lodsb
     and al, F_HIDDEN | F_LENMASK
     cmp al, cl
     jne short .next
     repe cmpsb
-    je short .found
+    je short Found
 .next:
     pop si
     mov si, [si]
-    jmp short .loop
-.found:
-    xchg ax, si
-    pop si
-    test byte[si+2], 0xff
-STATE equ $-1 ; 0xff -> interpret, 0x80 -> compile
-    jnz short EXECUTE
-    call _COMMA
-    jmp short INTERPRET
-EXECUTE:
-    pop bx
-    mov si, .return
-    jmp ax
-.return:
-    dw .executed
-.executed:
-    push bx
-    jmp short INTERPRET
+    or si, si
+    jnz short .loop
+
 NUMBER:
-    pop si
     mov si, dx
+    mov cx, bx
     xor bx, bx
     mov di, 10
 .loop:
@@ -164,6 +147,24 @@ COMPILE_LIT:
     call _COMMA
     xchg ax, bx
     call _COMMA
+    jmp short INTERPRET
+
+Found:
+    xchg ax, si
+    pop si
+    test byte[si+2], 0xff
+STATE equ $-1 ; 0xff -> interpret, 0x80 -> compile
+    jnz short EXECUTE
+    call _COMMA
+    jmp short INTERPRET
+EXECUTE:
+    pop bx
+    mov si, .return
+    jmp ax
+.return:
+    dw .executed
+.executed:
+    push bx
     jmp short INTERPRET
 
 ;ZBRANCH:
@@ -192,6 +193,8 @@ HERE equ $+1
 _WORD:
 TO_IN equ $+1
     mov si, TIB
+    ; repe scasb would probably save some bytes if the registers worked out - scasb
+    ; uses DI instead of SI :(
 .skiploop:
     lodsb
     cmp al, 0x20
