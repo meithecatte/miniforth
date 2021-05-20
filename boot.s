@@ -307,12 +307,12 @@ defcode DUP, "dup"
 
 defcode _STATE, "st"
     push bx
+    xor bx, bx
     mov al, [STATE]
     inc al
-    ; ZF set if interpret
-    mov bh, 0
-    setz bl
+    jz short .interpret
     dec bx
+.interpret:
 
 defcode DROP, "drop"
     pop bx
