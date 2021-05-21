@@ -54,8 +54,8 @@ start:
     mov ss, ax
     mov bp, RS0
 
-    push word HERE
     push word BASE
+    push word HERE
 
     mov si, CompressedData
     mov di, CompressedBegin
