@@ -110,6 +110,7 @@ INTERPRET:
 ; DX = string pointer
 ; BX = string length
 FIND:
+    push bx
     mov bx, cx
     mov si, [LATEST]
 .loop:
@@ -129,38 +130,20 @@ FIND:
     or si, si
     jnz short .loop
 
-NUMBER:
-    mov si, dx
-    xor bx, bx
-BASE equ $+1
-    mov di, 16
-.loop:
-    mov ah, 0
-    lodsb
-    or al, 0x20 ; to lowercase
-    sub al, "0"
-    cmp al, 9
-    jbe .digit_ok
-    sub al, "a" - "0" - 10
-.digit_ok
-    xchg ax, bx
-    mul di
-    add bx, ax
-    loop .loop
+; it's a number
     cmp byte[STATE], 0x80
-    je short COMPILE_LIT
-    push bx
-    jmp short INTERPRET
-COMPILE_LIT:
+    jne short INTERPRET ; already pushed at the beginning of FIND
+; we're compiling
     mov ax, LIT
     call _COMMA
-    xchg ax, bx
+    pop ax
     call _COMMA
     jmp short INTERPRET
 
 Found:
     xchg ax, si
-    pop si
+    pop si ; get dictionary pointer back
+    pop bx ; discard numeric value
     test byte[si+2], 0xff
 STATE equ $-1 ; 0xff -> interpret, 0x80 -> compile
     jnz short EXECUTE
@@ -200,7 +183,8 @@ HERE equ $+1
 ; returns
 ; DX = pointer to string
 ; CX = string length
-; clobbers SI
+; BX = numeric value
+; clobbers SI and BP
 _WORD:
     mov si, [TO_IN]
     ; repe scasb would probably save some bytes if the registers worked out - scasb
@@ -210,19 +194,31 @@ _WORD:
     cmp al, " "
     je short .skiploop
     dec si
-    mov dx, si
+    push si
     xor cx, cx
+    xor bx, bx
+BASE equ $+1
+    mov bp, 16
 .takeloop:
-    inc cx
     lodsb
-    or al, al
-    jz short .done
+    or al, 0x20 ; to lowercase, but also integrate null check and space check
     cmp al, " "
-    jnz short .takeloop
+    jz short .done
+    inc cx
+    mov ah, 0
+    sub al, "0"
+    cmp al, 9
+    jbe .digit_ok
+    sub al, "a" - "0" - 10
+.digit_ok
+    xchg ax, bx
+    mul bp
+    add bx, ax
+    jmp short .takeloop
 .done:
-    dec cx
     dec si
     mov [TO_IN], si
+    pop dx
     ret
 
 MakeLink:
