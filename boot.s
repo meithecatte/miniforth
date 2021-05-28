@@ -192,9 +192,8 @@ EXECUTE:
 
 _COMMA:
 HERE equ $+1
-    mov di, CompressedEnd
-    stosw
-    mov [HERE], di
+    mov [CompressedEnd], ax
+    add word[HERE], 2
     ret
 
 ; returns
