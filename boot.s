@@ -1,6 +1,6 @@
 ; Register usage:
 ; SP = parameter stack pointer (grows downwards from 0x7c00 - just before the entrypoint)
-; BP = return stack pointer (grows upwards from 0x500 - just after BDA)
+; DI = return stack pointer (grows upwards from 0x500 - just after BDA)
 ; SI = execution pointer
 ; BX = top of stack
 ;
@@ -51,7 +51,6 @@ start:
     ; TODO: wrap with CLI/STI if bytes are to spare (:doubt:)
     mov sp, 0x7c00
     mov ss, ax
-    mov bp, RS0
 
     push word BASE
     push word HERE
@@ -168,12 +167,15 @@ STATE equ $-1 ; 0xff -> interpret, 0x80 -> compile
     call _COMMA
     jmp short INTERPRET
 EXECUTE:
+RetSP equ $+1
+    mov di, RS0
     pop bx
     mov si, .return
     jmp ax
 .return:
     dw .executed
 .executed:
+    mov [RetSP], di
     push bx
     jmp short INTERPRET
 
@@ -245,9 +247,8 @@ CompressedData:
 ; the first byte of LIT and EXIT must have the 0x40 (F_HIDDEN) bit set.
 
 DOCOL:
-    mov [bp], si
-    inc bp
-    inc bp
+    xchg ax, si
+    stosw
     pop si
 CompressedBegin:
     compression_sentinel
@@ -259,12 +260,12 @@ LIT:
     compression_sentinel
 
 EXIT:
-    dec bp
-    dec bp
-    mov si, [bp]
+    dec di
+    dec di
+    mov si, [di]
 
 defcode DISKLOAD, "load"
-    push si
+    pusha
     mov si, DiskPacket
     lea di, [si+6]
     xor ax, ax
@@ -281,10 +282,10 @@ DRIVE_NUMBER equ $+1
     mov dl, 0
     mov ah, 0x42
     int 0x13
-    pop si
     jc short .done
     mov word[TO_IN], BLKBUF
 .done:
+    popa
     pop bx
 
 defcode PLUS, "+"
@@ -342,16 +343,15 @@ defcode SWAP, "swap"
     xchg ax, bx
 
 defcode TO_R, ">r"
-    mov [bp], bx
-    inc bp
-    inc bp
+    xchg ax, bx
+    stosw
     pop bx
 
 defcode FROM_R, "r>"
-    dec bp
-    dec bp
+    dec di
+    dec di
     push bx
-    mov bx, [bp]
+    mov bx, [di]
 
 defcode LBRACK, "[", F_IMMEDIATE
     mov byte[STATE], 0xff
@@ -373,7 +373,7 @@ defcode RBRACK, "]"
 defcode COLON, ":"
     push bx
     push si
-    mov di, [HERE]
+    xchg di, [HERE]
     call MakeLink
     call _WORD
     mov ax, cx
@@ -388,12 +388,12 @@ defcode COLON, ":"
     stosw
     pop si
     pop bx
-    mov [HERE], di
+    xchg [HERE], di
     jmp short RBRACK
 
 defcode SEMI, ";", F_IMMEDIATE
-    mov di, [LATEST]
-    and byte[di+2], ~F_HIDDEN
+    mov bp, [LATEST]
+    and byte[bp+2], ~F_HIDDEN
     mov ax, EXIT
     call _COMMA
     jmp short LBRACK
