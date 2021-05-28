@@ -104,13 +104,14 @@ REFILL:
     stosb
 INTERPRET:
     call _WORD
-    or bx, bx
+    or cx, cx
     jz short REFILL
 ; during FIND,
 ; SI = dictionary pointer
 ; DX = string pointer
 ; BX = string length
 FIND:
+    mov bx, cx
     mov si, [LATEST]
 .loop:
     push si
@@ -131,7 +132,6 @@ FIND:
 
 NUMBER:
     mov si, dx
-    mov cx, bx
     xor bx, bx
 BASE equ $+1
     mov di, 16
@@ -197,7 +197,7 @@ HERE equ $+1
 
 ; returns
 ; DX = pointer to string
-; BX = string length
+; CX = string length
 ; clobbers SI
 _WORD:
     mov si, [TO_IN]
@@ -209,16 +209,16 @@ _WORD:
     je short .skiploop
     dec si
     mov dx, si
-    xor bx, bx
+    xor cx, cx
 .takeloop:
-    inc bx
+    inc cx
     lodsb
     or al, al
     jz short .done
     cmp al, " "
     jnz short .takeloop
 .done:
-    dec bx
+    dec cx
     dec si
     mov [TO_IN], si
     ret
@@ -376,9 +376,9 @@ defcode COLON, ":"
     mov di, [HERE]
     call MakeLink
     call _WORD
-    lea ax, [bx + F_HIDDEN]
+    mov ax, cx
+    or al, F_HIDDEN
     stosb
-    mov cx, bx
     mov si, dx
     rep movsb
     mov al, 0xe8 ; call
