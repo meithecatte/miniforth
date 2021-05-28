@@ -18,7 +18,6 @@ F_LENMASK   equ 0x1f
 TIB equ 0x600
 BLKBUF equ 0x700
 BLKEND equ 0xb00
-PACKET equ 0xb01
 LATEST equ 0xb12 ; dw
 TO_IN  equ 0xb14 ; dw
 RS0 equ 0xc00
@@ -230,6 +229,15 @@ MakeLink:
     stosw
     ret
 
+DiskPacket:
+    db 0x10, 0
+.count:
+    dw 2
+.buffer:
+    dw BLKBUF
+    ; rest is zeroed out at runtime, overwriting the compressed data, which is no longer
+    ; necessary
+
 CompressedData:
     times COMPRESSED_SIZE db 0xcc
 
@@ -256,14 +264,9 @@ EXIT:
     mov si, [bp]
 
 defcode DISKLOAD, "load"
-    mov di, BLKEND
-    mov ax, 0x1000
-    stosw
-    mov ah, 2
-    stosw
-    stosb
-    mov ah, BLKBUF >> 8
-    stosw
+    push si
+    mov si, DiskPacket
+    lea di, [si+6]
     xor ax, ax
     stosw
     shl bx, 1
@@ -273,8 +276,7 @@ defcode DISKLOAD, "load"
     stosw
     stosw
     stosw
-    push si
-    mov si, PACKET
+    mov [BLKEND], al
 DRIVE_NUMBER equ $+1
     mov dl, 0
     mov ah, 0x42
