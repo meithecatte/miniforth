@@ -45,12 +45,14 @@ SPECIAL_BYTE equ 0x90
 
     jmp 0:start
 start:
-    xor ax, ax
-    mov ds, ax
-    mov es, ax
     cli
+    push cs
+    push cs
+    push cs
+    pop ds
+    pop es
+    pop ss
     mov sp, 0x7c00
-    mov ss, ax
     sti
     cld
 
@@ -81,6 +83,7 @@ start:
 ; A function called twice has an overhead of 7 bytes (2 CALLs and a RET), but the duplicated
 ; code is 6 bytes long.
 REFILL:
+    xor bx, bx ; for int 0x10
     mov di, InputBuf
     mov [InputPtr], di
 .loop:
@@ -90,19 +93,17 @@ REFILL:
     je short .enter
     cmp al, 0x08
     jne short .write
-    mov cx, di
-    or cl, cl
-    jz short .loop
+    cmp di, InputBuf
+    je short .loop
     dec di
     db 0xb1 ; skip the dec di below by loading its opcode to CL
 .write:
     stosb
     mov ah, 0x0e
-    xor bx, bx
     int 0x10
     jmp short .loop
 .enter:
-    xor ax, ax
+    xchg ax, bx
     stosb
 INTERPRET:
     call _WORD
