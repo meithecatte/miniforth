@@ -15,11 +15,11 @@ F_IMMEDIATE equ 0x80
 F_HIDDEN    equ 0x40
 F_LENMASK   equ 0x1f
 
-TIB equ 0x600
-BLKBUF equ 0x700
-BLKEND equ 0xb00
+InputBuf equ 0x600
+BlockBuf equ 0x700
+BlockBuf.end equ 0xb00
 LATEST equ 0xb02 ; dw
-TO_IN  equ 0xb04 ; dw
+InputPtr  equ 0xb04 ; dw
 RS0 equ 0xc00
 
 SPECIAL_BYTE equ 0x90
@@ -81,8 +81,8 @@ start:
 ; A function called twice has an overhead of 7 bytes (2 CALLs and a RET), but the duplicated
 ; code is 6 bytes long.
 REFILL:
-    mov di, TIB
-    mov [TO_IN], di
+    mov di, InputBuf
+    mov [InputPtr], di
 .loop:
     mov ah, 0
     int 0x16
@@ -189,7 +189,7 @@ HERE equ $+1
 ; BX = numeric value
 ; clobbers SI and BP
 _WORD:
-    mov si, [TO_IN]
+    mov si, [InputPtr]
     ; repe scasb would probably save some bytes if the registers worked out - scasb
     ; uses DI instead of SI :(
 .skiploop:
@@ -220,7 +220,7 @@ BASE equ $+1
     jmp short .takeloop
 .done:
     dec si
-    mov [TO_IN], si
+    mov [InputPtr], si
     pop dx
     ret
 
@@ -235,7 +235,7 @@ DiskPacket:
 .count:
     dw 2
 .buffer:
-    dw BLKBUF
+    dw BlockBuf
     ; rest is zeroed out at runtime, overwriting the compressed data, which is no longer
     ; necessary
 
@@ -276,13 +276,13 @@ defcode DISKLOAD, "load"
     stosw
     stosw
     stosw
-    mov [BLKEND], al
+    mov [BlockBuf.end], al
 DRIVE_NUMBER equ $+1
     mov dl, 0
     mov ah, 0x42
     int 0x13
     jc short .done
-    mov word[TO_IN], BLKBUF
+    mov word[InputPtr], BlockBuf
 .done:
     popa
     pop bx
