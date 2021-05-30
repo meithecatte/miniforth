@@ -236,7 +236,6 @@ DiskPacket:
 .count:
     dw 2
 .buffer:
-    dw BlockBuf
     ; rest is zeroed out at runtime, overwriting the compressed data, which is no longer
     ; necessary
 
@@ -266,8 +265,12 @@ EXIT:
 
 defcode DISKLOAD, "load"
     pusha
+.retry:
     mov si, DiskPacket
-    lea di, [si+6]
+    lea di, [si+4]
+    mov ax, BlockBuf
+    mov [InputPtr], ax
+    stosw
     xor ax, ax
     stosw
     shl bx, 1
@@ -282,9 +285,7 @@ DRIVE_NUMBER equ $+1
     mov dl, 0
     mov ah, 0x42
     int 0x13
-    jc short .done
-    mov word[InputPtr], BlockBuf
-.done:
+    jc short .retry
     popa
     pop bx
 
