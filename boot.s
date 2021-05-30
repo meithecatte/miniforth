@@ -48,9 +48,11 @@ start:
     xor ax, ax
     mov ds, ax
     mov es, ax
-    ; TODO: wrap with CLI/STI if bytes are to spare (:doubt:)
+    cli
     mov sp, 0x7c00
     mov ss, ax
+    sti
+    cld
 
     push word STATE
     push word BASE
