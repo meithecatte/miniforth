@@ -18,8 +18,8 @@ F_LENMASK   equ 0x1f
 TIB equ 0x600
 BLKBUF equ 0x700
 BLKEND equ 0xb00
-LATEST equ 0xb12 ; dw
-TO_IN  equ 0xb14 ; dw
+LATEST equ 0xb02 ; dw
+TO_IN  equ 0xb04 ; dw
 RS0 equ 0xc00
 
 SPECIAL_BYTE equ 0x90
@@ -52,6 +52,7 @@ start:
     mov sp, 0x7c00
     mov ss, ax
 
+    push word STATE
     push word BASE
     push word HERE
 
@@ -110,7 +111,7 @@ INTERPRET:
 ; DX = string pointer
 ; BX = string length
 FIND:
-    push bx
+    push bx ; save the numeric value in case the word is not found in the dictionary
     mov bx, cx
     mov si, [LATEST]
 .loop:
@@ -137,8 +138,7 @@ FIND:
     mov ax, LIT
     call _COMMA
     pop ax
-    call _COMMA
-    jmp short INTERPRET
+    jmp short Compile
 
 Found:
     xchg ax, si
@@ -147,6 +147,7 @@ Found:
     test byte[si+2], 0xff
 STATE equ $-1 ; 0xff -> interpret, 0x80 -> compile
     jnz short EXECUTE
+Compile:
     call _COMMA
     jmp short INTERPRET
 EXECUTE:
@@ -312,25 +313,37 @@ defcode CLOAD, "c@"
 defcode DUP, "dup"
     push bx
 
-defcode _STATE, "st"
-    push bx
-    xor bx, bx
-    mov al, [STATE]
-    inc al
-    jz short .interpret
-    dec bx
-.interpret:
-
 defcode DROP, "drop"
     pop bx
 
 defcode EMIT, "emit"
     xchg bx, ax
+    mov cx, 1
+    jmp short UDOT.got_digit
+
+defcode UDOT, "u."
+    xor cx, cx
+    xchg ax, bx
+    push word " " - "0"
+    inc cx
+.split:
+    xor dx, dx
+    div word[BASE]
+    push dx
+    inc cx
+    or ax, ax
+    jnz .split
+.print:
+    pop ax
+    add al, "0"
+    cmp al, "9"
+    jbe .got_digit
+    add al, "A" - "0" - 10
+.got_digit:
     xor bx, bx
     mov ah, 0x0e
-    ; TODO: RBIL says some ancient BIOSes destroy BP. Save it on the stack if we
-    ; can afford it.
     int 0x10
+    loop .print
     pop bx
 
 defcode SWAP, "swap"
@@ -355,17 +368,6 @@ defcode LBRACK, "[", F_IMMEDIATE
 defcode RBRACK, "]"
     mov byte[STATE], 0x80
 
-; defword COLON takes 6 more bytes than defcode COLON
-; (the defword is untested and requires some unwritten primitives)
-; defword COLON, ":"
-;     dw _HERE
-;     dw _LATEST, LOAD, COMMA
-;     dw _LATEST, STORE
-;     dw __WORD, DUP, LIT, F_HIDDEN, PLUS, CCOMMA
-;     dw _HERE, SWAP, CMOVE
-;     dw LIT, 0xe8, CCOMMA
-;     dw LIT, DOCOL-2, HERE, MINUS, COMMA
-;     dw RBRACK, EXIT
 defcode COLON, ":"
     push bx
     push si
@@ -373,7 +375,6 @@ defcode COLON, ":"
     call MakeLink
     call _WORD
     mov ax, cx
-    or al, F_HIDDEN
     stosb
     mov si, dx
     rep movsb
@@ -388,8 +389,6 @@ defcode COLON, ":"
     jmp short RBRACK
 
 defcode SEMI, ";", F_IMMEDIATE
-    mov bp, [LATEST]
-    and byte[bp+2], ~F_HIDDEN
     mov ax, EXIT
     call _COMMA
     jmp short LBRACK
