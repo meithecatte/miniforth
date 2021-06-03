@@ -44,6 +44,10 @@ SPECIAL_BYTE equ 0x90
     org 0x7c00
 
     jmp 0:start
+stack:
+    dw HERE
+    dw BASE
+    dw STATE
 start:
     cli
     push cs
@@ -52,13 +56,9 @@ start:
     pop ds
     pop es
     pop ss
-    mov sp, 0x7c00
+    mov sp, stack
     sti
     cld
-
-    push word STATE
-    push word BASE
-    push word HERE
 
     mov si, CompressedData
     mov di, CompressedBegin
