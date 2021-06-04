@@ -18,7 +18,6 @@ F_LENMASK   equ 0x1f
 InputBuf equ 0x600
 BlockBuf equ 0x700
 BlockBuf.end equ 0xb00
-LATEST equ 0xb02 ; dw
 InputPtr  equ 0xb04 ; dw
 RS0 equ 0xc00
 
@@ -48,6 +47,7 @@ stack:
     dw HERE
     dw BASE
     dw STATE
+    dw LATEST
 start:
     cli
     push cs
@@ -116,7 +116,8 @@ INTERPRET:
 FIND:
     push bx ; save the numeric value in case the word is not found in the dictionary
     mov bx, cx
-    mov si, [LATEST]
+LATEST equ $+1
+    mov si, 0
 .loop:
     push si
     mov cx, bx

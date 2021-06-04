@@ -29,10 +29,9 @@ Due to space constraints, variables such as `STATE` or `BASE` couldn't be expose
 separate words. Depending on the variable, the address is either hardcoded or pushed onto
 the stack on boot:
 
- - `LATEST` is a word at `0xb02`. It stores the head of the dictionary linked list.
  - `>IN` is a word at `0xb04`. It stores the pointer to the first unparsed character
    of the null-terminated input buffer.
- - The stack on boot is `STATE BASE HERE` (with `HERE` on top).
+ - The stack on boot is `LATEST STATE BASE HERE` (with `HERE` on top).
  - `STATE` has a non-standard format - it is a byte, where `0x80` means compiling,
    and `0xff` means interpreting.
 
@@ -50,8 +49,8 @@ The build will print the number of used bytes.
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **503** bytes are used,
-leaving 7 bytes for any potential improvements. If a feature is strongly desirable,
+At this moment, not counting the `55 AA` signature at the end, **504** bytes are used,
+leaving 6 bytes for any potential improvements. If a feature is strongly desirable,
 potential tradeoffs include:
 
  - 2 bytes: Removing the `cli/sti` around initialization code. This creates a 2-instruction
