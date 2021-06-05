@@ -264,32 +264,6 @@ EXIT:
     dec di
     mov si, [di]
 
-defcode DISKLOAD, "load"
-    pusha
-.retry:
-    mov si, DiskPacket
-    lea di, [si+4]
-    mov ax, BlockBuf
-    mov [InputPtr], ax
-    stosw
-    xor ax, ax
-    stosw
-    shl bx, 1
-    xchg ax, bx
-    stosw
-    xchg ax, bx
-    stosw
-    stosw
-    stosw
-    mov [BlockBuf.end], al
-DRIVE_NUMBER equ $+1
-    mov dl, 0
-    mov ah, 0x42
-    int 0x13
-    jc short .retry
-    popa
-    pop bx
-
 defcode PLUS, "+"
     pop ax
     add bx, ax
@@ -365,6 +339,32 @@ defcode FROM_R, "r>"
     dec di
     push bx
     mov bx, [di]
+
+defcode DISKLOAD, "load"
+    pusha
+.retry:
+    mov si, DiskPacket
+    lea di, [si+4]
+    mov ax, BlockBuf
+    mov [InputPtr], ax
+    stosw
+    xor ax, ax
+    stosw
+    shl bx, 1
+    xchg ax, bx
+    stosw
+    xchg ax, bx
+    stosw
+    stosw
+    stosw
+    mov [BlockBuf.end], al
+DRIVE_NUMBER equ $+1
+    mov dl, 0
+    mov ah, 0x42
+    int 0x13
+    jc short .retry
+    popa
+    pop bx
 
 defcode LBRACK, "[", F_IMMEDIATE
     mov byte[STATE], 0xeb
