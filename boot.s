@@ -49,7 +49,7 @@ stack:
     dw STATE
     dw LATEST
 start:
-    cli
+    ;cli
     push cs
     push cs
     push cs
@@ -57,7 +57,7 @@ start:
     pop es
     pop ss
     mov sp, stack
-    sti
+    ;sti
     cld
 
     mov si, CompressedData
@@ -268,10 +268,10 @@ defcode PLUS, "+"
     pop ax
     add bx, ax
 
-defcode MINUS, "-"
-    pop ax
-    sub ax, bx
-    xchg bx, ax
+;defcode MINUS, "-"
+;    pop ax
+;    sub ax, bx
+;    xchg bx, ax
 
 defcode STORE, "!"
     pop word [bx]
@@ -294,10 +294,10 @@ defcode DUP, "dup"
 defcode DROP, "drop"
     pop bx
 
-defcode EMIT, "emit"
-    xchg bx, ax
-    mov cx, 1
-    jmp short UDOT.got_digit
+;defcode EMIT, "emit"
+;    xchg bx, ax
+;    mov cx, 1
+;    jmp short UDOT.got_digit
 
 defcode UDOT, "u."
     xor cx, cx
@@ -365,6 +365,28 @@ DRIVE_NUMBER equ $+1
     jc short .retry
     popa
     pop bx
+
+defcode LINE, "line" ; ( buf -- buf+len )
+    ;add bx, BlockBuf >> 6
+    ;shl bx, 6
+    xchg bx, di
+    xchg si, [InputPtr]
+    inc si
+    mov cx, 64
+.copy:
+    lodsb
+    or al, al
+    jz short .eol
+    stosb
+    loop .copy
+    jmp short .done
+.eol:
+    mov al, 0x20
+    stosb
+    loop .eol
+.done:
+    xchg bx, di
+    xchg si, [InputPtr]
 
 defcode LBRACK, "[", F_IMMEDIATE
     mov byte[STATE], 0xeb
