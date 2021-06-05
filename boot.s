@@ -49,15 +49,15 @@ stack:
     dw STATE
     dw LATEST
 start:
-    ;cli
     push cs
     push cs
     push cs
     pop ds
     pop es
+    ; Little known fact: writing to SS disables interrupts for the next instruction,
+    ; so this is safe without an explicit cli/sti.
     pop ss
     mov sp, stack
-    ;sti
     cld
 
     mov si, CompressedData
@@ -268,11 +268,6 @@ defcode PLUS, "+"
     pop ax
     add bx, ax
 
-;defcode MINUS, "-"
-;    pop ax
-;    sub ax, bx
-;    xchg bx, ax
-
 defcode STORE, "!"
     pop word [bx]
     pop bx
@@ -294,10 +289,10 @@ defcode DUP, "dup"
 defcode DROP, "drop"
     pop bx
 
-;defcode EMIT, "emit"
-;    xchg bx, ax
-;    mov cx, 1
-;    jmp short UDOT.got_digit
+defcode EMIT, "emit"
+    xchg bx, ax
+    mov cx, 1
+    jmp short UDOT.got_digit
 
 defcode UDOT, "u."
     xor cx, cx
@@ -366,25 +361,17 @@ DRIVE_NUMBER equ $+1
     popa
     pop bx
 
-defcode LINE, "line" ; ( buf -- buf+len )
-    ;add bx, BlockBuf >> 6
-    ;shl bx, 6
+;; Copies the rest of the line at buf.
+defcode LINE, "s:" ; ( buf -- buf+len )
     xchg bx, di
     xchg si, [InputPtr]
-    inc si
-    mov cx, 64
 .copy:
     lodsb
+    stosb
     or al, al
-    jz short .eol
-    stosb
-    loop .copy
-    jmp short .done
-.eol:
-    mov al, 0x20
-    stosb
-    loop .eol
+    jnz short .copy
 .done:
+    dec di
     xchg bx, di
     xchg si, [InputPtr]
 

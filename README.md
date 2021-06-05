@@ -1,11 +1,16 @@
 # miniforth
 
 `miniforth` is a real mode [FORTH] that fits in an MBR boot sector.
-The following words are available:
+The following standard words are available:
 
 ```
-+ - ! @ c! c@ dup drop swap emit u. >r r> [ ] : ; load
++ ! @ c! c@ dup drop swap emit u. >r r> [ ] : ; load
 ```
+
+Additionally, there is one non-standard word. `s: ( buf -- buf+len )` will copy the
+rest of the current input buffer to `buf`, and terminate it with a null byte. The address
+of said null byte will be pushed onto the stack. This is designed for saving the code being
+ran to later put it in a disk block, when no block editor is available yet.
 
 The dictionary is case-sensitive. If a word is not found, it is converted into a number
 with no error checking. For example, `g` results in the decimal 16, extending
@@ -50,18 +55,13 @@ The build will print the number of used bytes.
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **493** bytes are used,
-leaving 17 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **507** bytes are used,
+leaving 3 bytes for any potential improvements.
 
 *Thanks to Ilya Kurdyukov for saving **12** bytes!*
 
 If a feature is strongly desirable, potential tradeoffs include:
 
- - 2 bytes: Remove the `cli/sti` around initialization code. This creates a 2-instruction
-   wide race condition window during boot, during which an interrupt could crash the system
-   depending on where the BIOS decided to put the stack. I did not observe this happening
-   in practice, though.
- - 7 bytes: Remove the `-` word.
  - 12 bytes: Remove the `emit` word.
  - 8 bytes: Don't push the addresses of variables kept by self-modifying code. This
    essentially changes the API with each edit.
