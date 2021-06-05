@@ -32,8 +32,8 @@ the stack on boot:
  - `>IN` is a word at `0xb04`. It stores the pointer to the first unparsed character
    of the null-terminated input buffer.
  - The stack on boot is `LATEST STATE BASE HERE` (with `HERE` on top).
- - `STATE` has a non-standard format - it is a byte, where `0x80` means compiling,
-   and `0xff` means interpreting.
+ - `STATE` has a non-standard format - it is a byte, where `0x75` means compiling,
+   and `0xeb` means interpreting.
 
 ## Building
 
@@ -49,18 +49,20 @@ The build will print the number of used bytes.
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **504** bytes are used,
-leaving 6 bytes for any potential improvements. If a feature is strongly desirable,
-potential tradeoffs include:
+At this moment, not counting the `55 AA` signature at the end, **492** bytes are used,
+leaving 18 bytes for any potential improvements.
 
- - 2 bytes: Removing the `cli/sti` around initialization code. This creates a 2-instruction
+*Thanks to Ilya Kurdyukov for saving **12** bytes!*
+
+If a feature is strongly desirable, potential tradeoffs include:
+
+ - 2 bytes: Remove the `cli/sti` around initialization code. This creates a 2-instruction
    wide race condition window during boot, during which an interrupt could crash the system
    depending on where the BIOS decided to put the stack. I did not observe this happening
    in practice, though.
  - 7 bytes: Remove the `-` word.
  - 12 bytes: Remove the `emit` word.
-
-So far, nobody has found any bytes to be saved in my code, [so it must be optimal][cunningham] ;)
+ - 8 bytes: Don't push the addresses of variables kept by self-modifying code. This
+   essentially changes the API with each edit.
 
 [FORTH]: https://en.wikipedia.org/wiki/Forth_(programming_language)
-[cunningham]: https://meta.wikimedia.org/wiki/Cunningham%27s_Law

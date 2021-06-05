@@ -1,6 +1,6 @@
 ; Register usage:
 ; SP = parameter stack pointer (grows downwards from 0x7c00 - just before the entrypoint)
-; DI = return stack pointer (grows upwards from 0x500 - just after BDA)
+; DI = return stack pointer (grows upwards from 0xc00)
 ; SI = execution pointer
 ; BX = top of stack
 ;
@@ -107,8 +107,7 @@ REFILL:
     stosb
 INTERPRET:
     call _WORD
-    or cx, cx
-    jz short REFILL
+    jcxz short REFILL
 ; during FIND,
 ; SI = dictionary pointer
 ; DX = string pointer
@@ -119,38 +118,39 @@ FIND:
 LATEST equ $+1
     mov si, 0
 .loop:
-    push si
     mov cx, bx
     mov di, dx
     lodsw
+    push ax ; save pointer to next entry
     lodsb
-    and al, F_HIDDEN | F_LENMASK
-    cmp al, cl
-    jne short .next
+    xor al, cl ; if the length matches, then AL contains only the flags
+    test al, F_HIDDEN | F_LENMASK
+    jnz short .next
     repe cmpsb
     je short Found
 .next:
     pop si
-    mov si, [si]
     or si, si
     jnz short .loop
 
 ; it's a number
-    cmp byte[STATE], 0x80
-    jne short INTERPRET ; already pushed at the beginning of FIND
+    cmp byte[STATE], 0xeb
+    je short INTERPRET ; already pushed at the beginning of FIND
 ; we're compiling
     mov ax, LIT
     call _COMMA
     pop ax
     jmp short Compile
 
+; When we get here, SI points to the code of the word, and AL contains
+; the F_IMMEDIATE flag
 Found:
-    xchg ax, si
-    pop si ; get dictionary pointer back
+    pop bx ; discard pointer to next entry
     pop bx ; discard numeric value
-    test byte[si+2], 0xff
-STATE equ $-1 ; 0xff -> interpret, 0x80 -> compile
-    jnz short EXECUTE
+    or al, al
+    xchg ax, si
+STATE equ $ ; 0xeb (jmp) -> interpret, 0x75 (jnz) -> compile
+    jmp short EXECUTE
 Compile:
     call _COMMA
     jmp short INTERPRET
@@ -202,22 +202,21 @@ _WORD:
     push si
     xor cx, cx
     xor bx, bx
-BASE equ $+1
-    mov bp, 16
 .takeloop:
     lodsb
-    or al, 0x20 ; to lowercase, but also integrate null check and space check
-    cmp al, " "
+    and al, ~0x20 ; to uppercase, but also integrate null check and space check
     jz short .done
     inc cx
-    mov ah, 0
-    sub al, "0"
+    sub al, 0x10
     cmp al, 9
     jbe .digit_ok
-    sub al, "a" - "0" - 10
+    sub al, "A" - 0x10 - 10
 .digit_ok
-    xchg ax, bx
-    mul bp
+    cbw
+    ; imul bx, bx, <BASE> but yasm insists on encoding the immediate in just one byte...
+    db 0x69, 0xdb
+BASE equ $
+    dw 16
     add bx, ax
     jmp short .takeloop
 .done:
@@ -312,8 +311,7 @@ defcode CSTORE, "c!"
     pop bx
 
 defcode CLOAD, "c@"
-    mov bl, [bx]
-    mov bh, 0
+    movzx bx, byte[bx]
 
 defcode DUP, "dup"
     push bx
@@ -329,7 +327,7 @@ defcode EMIT, "emit"
 defcode UDOT, "u."
     xor cx, cx
     xchg ax, bx
-    push word " " - "0"
+    push " " - "0"
     inc cx
 .split:
     xor dx, dx
@@ -368,10 +366,10 @@ defcode FROM_R, "r>"
     mov bx, [di]
 
 defcode LBRACK, "[", F_IMMEDIATE
-    mov byte[STATE], 0xff
+    mov byte[STATE], 0xeb
 
 defcode RBRACK, "]"
-    mov byte[STATE], 0x80
+    mov byte[STATE], 0x75
 
 defcode COLON, ":"
     push bx
