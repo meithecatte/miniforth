@@ -80,9 +80,6 @@ start:
     mov [DRIVE_NUMBER], dl
     push dx ; for FORTH code
 
-; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
-; A function called twice has an overhead of 7 bytes (2 CALLs and a RET), but the duplicated
-; code is 6 bytes long.
 REFILL:
     xor bx, bx ; for int 0x10
     mov di, InputBuf
@@ -289,6 +286,9 @@ defcode DUP, "dup"
 defcode DROP, "drop"
     pop bx
 
+; NOTE: we could extract the call to int 0x10 into a CALL-able routine. It
+; barely fails to save bytes, though (no change in size, and disrupts an optimization
+; in REFILL - it could fail to handle empty lines correctly).
 defcode EMIT, "emit"
     xchg bx, ax
     mov cx, 1
