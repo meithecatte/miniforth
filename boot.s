@@ -72,7 +72,7 @@ start:
     mov al, 0xe0
     stosb
     call MakeLink
-    db 0xb1
+    db 0xb1 ; skip the stosb below by loading its opcode to CL
 .not_special:
     stosb
     loop .decompress
@@ -223,6 +223,7 @@ BASE equ $
     pop dx
     ret
 
+; Creates a link of the dictionary linked list at DI.
 MakeLink:
     mov ax, [LATEST]
     mov [LATEST], di
@@ -243,11 +244,12 @@ CompressedData:
 ; Invariant: due to the use of compression_sentinel without a dictionary header following it,
 ; the first byte of LIT and EXIT must have the 0x40 (F_HIDDEN) bit set.
 
+CompressedBegin:
+
 DOCOL:
     xchg ax, si
     stosw
-    pop si
-CompressedBegin:
+    pop si ; grab the pointer pushed by `call`
     compression_sentinel
 
 LIT:

@@ -1,19 +1,24 @@
+SENTINEL = b'\x90\xef\xbe\xad\xde'
+
 with open('raw.bin', 'rb') as f:
     data = f.read()
-SENTINEL = b'\x90\xef\xbe\xad\xde'
-chunks = data.split(SENTINEL)
 
-compressed = bytearray()
+output_offset = data.index(b'\xcc' * 20)
+chunks = data[output_offset:].lstrip(b'\xcc').split(SENTINEL)
+
+compressed = bytearray(chunks[0])
 
 for chunk in chunks[1:]:
     assert b'\x90' not in chunk
     compressed.extend(b'\x90')
     compressed.extend(chunk)
 
-assert b'\xcc' * (len(compressed) + 1) not in chunks[0]
-output = bytearray(chunks[0])
-offset = output.index(b'\xcc' * len(compressed))
-output[offset:offset+len(compressed)] = compressed
+# Make sure that exactly the right amount of space is allocated
+# for the compressed data.
+assert b'\xcc' * len(compressed) in data
+assert b'\xcc' * (len(compressed) + 1) not in data
+
+output = data[:output_offset] + compressed
 
 print(len(output), 'bytes used')
 output += b'\x00' * (510 - len(output))
