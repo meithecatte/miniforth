@@ -78,6 +78,7 @@ start:
     loop .decompress
 
     mov [DRIVE_NUMBER], dl
+    push dx ; for FORTH code
 
 ; NOTE: we could extract EMIT into a CALL-able routine, but it's not worth it.
 ; A function called twice has an overhead of 7 bytes (2 CALLs and a RET), but the duplicated
