@@ -32,7 +32,7 @@ SPECIAL_BYTE equ 0x90
 %endmacro
 
 ; defcode PLUS, "+"
-; defcode COLON, ":", F_IMMEDIATE
+; defcode SEMI, ";", F_IMMEDIATE
 %macro defcode 2-3 0
     compression_sentinel
 %strlen namelength %2
@@ -288,6 +288,22 @@ defcode DUP, "dup"
 defcode DROP, "drop"
     pop bx
 
+defcode SWAP, "swap"
+    pop ax
+    push bx
+    xchg ax, bx
+
+defcode TO_R, ">r"
+    xchg ax, bx
+    stosw
+    pop bx
+
+defcode FROM_R, "r>"
+    dec di
+    dec di
+    push bx
+    mov bx, [di]
+
 ; NOTE: we could extract the call to int 0x10 into a CALL-able routine. It
 ; barely fails to save bytes, though (no change in size, and disrupts an optimization
 ; in REFILL - it could fail to handle empty lines correctly).
@@ -320,22 +336,6 @@ defcode UDOT, "u."
     int 0x10
     loop .print
     pop bx
-
-defcode SWAP, "swap"
-    pop ax
-    push bx
-    xchg ax, bx
-
-defcode TO_R, ">r"
-    xchg ax, bx
-    stosw
-    pop bx
-
-defcode FROM_R, "r>"
-    dec di
-    dec di
-    push bx
-    mov bx, [di]
 
 defcode DISKLOAD, "load"
     pusha
