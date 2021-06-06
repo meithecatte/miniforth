@@ -131,10 +131,15 @@ LATEST equ $+1
     or si, si
     jnz short .loop
 
-; it's a number
-    cmp byte[STATE], 0xeb
-    je short INTERPRET ; already pushed at the beginning of FIND
-; we're compiling
+    ; It's a number.
+    ; At this point, AH is zero, since it contains the higher half of the pointer
+    ; to the next word, which we know is NULL at this point. We use this to branch
+    ; based on the most-significant bit of STATE, which is either 0x75 or 0xeb.
+    ; If it's 0xeb, we simply branch to INTERPRET, since the numeric value has already
+    ; been pushed.
+    cmp byte[STATE], ah
+    js short INTERPRET
+    ; Otherwise, compile the literal.
     mov ax, LIT
     call _COMMA
     pop ax
