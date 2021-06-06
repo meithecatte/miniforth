@@ -87,6 +87,8 @@ REFILL:
 .loop:
     mov ah, 0
     int 0x16
+    mov ah, 0x0e
+    int 0x10
     cmp al, 0x0d
     je short .enter
     cmp al, 0x08
@@ -97,10 +99,10 @@ REFILL:
     db 0xb1 ; skip the dec di below by loading its opcode to CL
 .write:
     stosb
-    mov ah, 0x0e
-    int 0x10
     jmp short .loop
 .enter:
+    mov al, 0x0a
+    int 0x10
     xchg ax, bx
     stosb
 INTERPRET:
