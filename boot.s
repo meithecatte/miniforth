@@ -9,7 +9,19 @@
 ; name: counted string (with flags)
 ;
 ; The Forth is DTC, as this saves 2 bytes for each defcode, while costing 3 bytes
-; for each defword.
+; for each defword (of which there are none in the bootsector)
+;
+; Memory layout:
+; 0000 - 03ff  IVT
+; 0400 - 04ff  Reserved by BIOS
+; 0600 - 06ff  Keyboard input buffer
+; 0700 - 0aff  Disk block buffer (for LOAD)
+; 0b00 - 0bff  Assorted variables (only 3 bytes are actually used at the moment)
+; 0c00 - ...   Return stack (grows upwards)
+; ...  - ...   Space for manual allocation by user
+; ...  -~7c10  Parameter stack
+; 7c00 - 7dff  MBR (code loaded by BIOS)
+; 7e00 - ...   Decompressed code and dictionary space (HERE / ALLOT)
 
 F_IMMEDIATE equ 0x80
 F_HIDDEN    equ 0x40
@@ -18,7 +30,7 @@ F_LENMASK   equ 0x1f
 InputBuf equ 0x600
 BlockBuf equ 0x700
 BlockBuf.end equ 0xb00
-InputPtr  equ 0xb04 ; dw
+InputPtr  equ 0xb02 ; dw
 RS0 equ 0xc00
 
 SPECIAL_BYTE equ 0xff
@@ -215,10 +227,11 @@ BASE equ $
     lodsb
     jmp short .takeloop
 
-; Creates a link of the dictionary linked list at DI.
+; Creates a dictionary linked list link at DI.
 MakeLink:
     mov ax, di
-    xchg [LATEST], ax
+    xchg [LATEST], ax  ; AX now points at the old entry, while
+                       ; LATEST and DI point at the new one.
     stosw
     ret
 
@@ -265,20 +278,20 @@ defcode PLUS, "+"
     pop ax
     add bx, ax
 
+defcode LOAD, "@"
+    mov bx, [bx]
+
 defcode STORE, "!"
     pop word [bx]
     pop bx
 
-defcode LOAD, "@"
-    mov bx, [bx]
+defcode CLOAD, "c@"
+    movzx bx, byte[bx]
 
 defcode CSTORE, "c!"
     pop ax
     mov [bx], al
     pop bx
-
-defcode CLOAD, "c@"
-    movzx bx, byte[bx]
 
 defcode DUP, "dup"
     push bx

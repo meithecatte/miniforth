@@ -34,7 +34,7 @@ Due to space constraints, variables such as `STATE` or `BASE` couldn't be expose
 separate words. Depending on the variable, the address is either hardcoded or pushed onto
 the stack on boot:
 
- - `>IN` is a word at `0xb04`. It stores the pointer to the first unparsed character
+ - `>IN` is a word at `0xb02`. It stores the pointer to the first unparsed character
    of the null-terminated input buffer.
  - The stack on boot is `LATEST STATE BASE HERE #DISK` (with `#DISK` on top).
  - `STATE` has a non-standard format - it is a byte, where `0x75` means compiling,
