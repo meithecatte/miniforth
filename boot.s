@@ -309,32 +309,31 @@ defcode FROM_R, "r>"
 ; in REFILL - it could fail to handle empty lines correctly).
 defcode EMIT, "emit"
     xchg bx, ax
-    mov cx, 1
-    jmp short UDOT.got_digit
+    xor bx, bx
+    mov ah, 0x0e
+    int 0x10
+    pop bx
 
 defcode UDOT, "u."
-    xor cx, cx
     xchg ax, bx
-    push " " - "0"
-    inc cx
+    push " " ^ "0"
 .split:
     xor dx, dx
     div word[BASE]
     push dx
-    inc cx
     or ax, ax
     jnz .split
 .print:
     pop ax
-    add al, "0"
+    xor ax, 0x0e30 ; set AH = 0x0e and turn AL into ASCII digit
     cmp al, "9"
     jbe .got_digit
     add al, "A" - "0" - 10
 .got_digit:
     xor bx, bx
-    mov ah, 0x0e
     int 0x10
-    loop .print
+    cmp al, " "
+    jne short .print
     pop bx
 
 defcode DISKLOAD, "load"
