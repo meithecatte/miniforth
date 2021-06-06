@@ -181,6 +181,7 @@ _COMMA:
 HERE equ $+1
     mov [CompressedEnd], ax
     add word[HERE], 2
+Return:
     ret
 
 ; returns
@@ -193,17 +194,17 @@ _WORD:
     ; repe scasb would probably save some bytes if the registers worked out - scasb
     ; uses DI instead of SI :(
 .skiploop:
+    mov dx, si ; if we exit the loop in this iteration, dx will point to the first letter
+               ; of the word
     lodsb
     cmp al, " "
     je short .skiploop
-    dec si
-    push si
     xor cx, cx
     xor bx, bx
 .takeloop:
-    lodsb
+    ; AL is already loaded by the end of the previous iteration, or the previous loop
     and al, ~0x20 ; to uppercase, but also integrate null check and space check
-    jz short .done
+    jz short Return
     inc cx
     sub al, 0x10
     cmp al, 9
@@ -216,12 +217,9 @@ _WORD:
 BASE equ $
     dw 16
     add bx, ax
-    jmp short .takeloop
-.done:
-    dec si
     mov [InputPtr], si
-    pop dx
-    ret
+    lodsb
+    jmp short .takeloop
 
 ; Creates a link of the dictionary linked list at DI.
 MakeLink:
