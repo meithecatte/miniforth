@@ -111,7 +111,6 @@ INTERPRET:
 ; DX = string pointer
 ; BX = string length
 FIND:
-    push bx ; save the numeric value in case the word is not found in the dictionary
 LATEST equ $+1
     mov si, 0
 .loop:
@@ -131,7 +130,9 @@ LATEST equ $+1
     or si, si
     jnz short .loop
 
-    ; It's a number.
+    ; It's a number. Push its value - we'll pop it later if it turns out we need to compile
+    ; it instead.
+    push bx
     ; At this point, AH is zero, since it contains the higher half of the pointer
     ; to the next word, which we know is NULL at this point. We use this to branch
     ; based on the most-significant bit of STATE, which is either 0x75 or 0xeb.
@@ -149,7 +150,6 @@ LATEST equ $+1
 ; the F_IMMEDIATE flag
 Found:
     pop bx ; discard pointer to next entry
-    pop bx ; discard numeric value
     or al, al
     xchg ax, si
 STATE equ $ ; 0xeb (jmp) -> interpret, 0x75 (jnz) -> compile
