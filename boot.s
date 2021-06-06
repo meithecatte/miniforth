@@ -86,7 +86,6 @@ REFILL:
 .loop:
     mov ah, 0
     int 0x16
-    call PutChar
     cmp al, 0x0d
     je short .enter
     cmp al, 0x08
@@ -97,8 +96,10 @@ REFILL:
     db 0x3c ; skip the stosb below by comparing its opcode with AL
 .write:
     stosb
+    call PutChar
     jmp short .loop
 .enter:
+    call PutChar
     mov al, 0x0a
     int 0x10
     xchg ax, bx
