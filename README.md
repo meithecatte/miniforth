@@ -55,15 +55,16 @@ The build will print the number of used bytes.
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **501** bytes are used,
-leaving 9 byte for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **504** bytes are used,
+leaving 6 bytes for any potential improvements.
 
 *Thanks to Ilya Kurdyukov for saving **20** bytes!*
 
 If a feature is strongly desirable, potential tradeoffs include:
 
  - 12 bytes: Remove the `emit` word.
- - 8 bytes: Don't push the addresses of variables kept by self-modifying code. This
-   essentially changes the API with each edit.
+ - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This
+   essentially changes the API with each edit (NOTE: it's 9 bytes because this makes it
+   beneficial to keep `>IN` in the literal field of an instruction).
 
 [FORTH]: https://en.wikipedia.org/wiki/Forth_(programming_language)
