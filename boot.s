@@ -72,7 +72,7 @@ start:
     mov al, 0xe0
     stosb
     call MakeLink
-    db 0xb1 ; skip the stosb below by loading its opcode to CL
+    db 0x3c ; skip the stosb below by comparing its opcode with AL
 .not_special:
     stosb
     loop .decompress
@@ -94,7 +94,7 @@ REFILL:
     cmp di, InputBuf
     je short .loop
     dec di
-    db 0xb1 ; skip the dec di below by loading its opcode to CL
+    db 0x3c ; skip the stosb below by comparing its opcode with AL
 .write:
     stosb
     jmp short .loop
@@ -169,18 +169,6 @@ RetSP equ $+1
     mov [RetSP], di
     push bx
     jmp short INTERPRET
-
-;ZBRANCH:
-;    lodsw
-;    or bx, bx
-;    pop bx
-;    jnz short NEXT
-;    db 0xb1 ; skip the lodsw below by loading its opcode to CL
-;
-;BRANCH:
-;    lodsw
-;    xchg si, ax
-;    jmp short NEXT
 
 _COMMA:
 HERE equ $+1
