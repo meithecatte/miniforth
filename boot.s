@@ -112,19 +112,19 @@ INTERPRET:
 ; BX = string length
 FIND:
     push bx ; save the numeric value in case the word is not found in the dictionary
-    mov bx, cx
 LATEST equ $+1
     mov si, 0
 .loop:
-    mov cx, bx
-    mov di, dx
     lodsw
     push ax ; save pointer to next entry
     lodsb
     xor al, cl ; if the length matches, then AL contains only the flags
     test al, F_HIDDEN | F_LENMASK
     jnz short .next
+    mov di, dx
+    push cx
     repe cmpsb
+    pop cx
     je short Found
 .next:
     pop si
