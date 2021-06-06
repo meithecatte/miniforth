@@ -92,7 +92,7 @@ start:
     mov [DRIVE_NUMBER], dl
     push dx ; for FORTH code
 
-REFILL:
+ReadLine:
     mov di, InputBuf
     mov [InputPtr], di
 .loop:
@@ -116,14 +116,14 @@ REFILL:
     int 0x10
     xchg ax, bx
     stosb
-INTERPRET:
-    call _WORD
-    jcxz short REFILL
-; during FIND,
+InterpreterLoop:
+    call ParseWord
+    jcxz short ReadLine
+
+; Try to find the word in the dictionary.
 ; SI = dictionary pointer
 ; DX = string pointer
-; BX = string length
-FIND:
+; CX = string length
 LATEST equ $+1
     mov si, 0
 .loop:
@@ -137,7 +137,7 @@ LATEST equ $+1
     push cx
     repe cmpsb
     pop cx
-    je short Found
+    je short .found
 .next:
     pop si
     or si, si
@@ -149,28 +149,28 @@ LATEST equ $+1
     ; At this point, AH is zero, since it contains the higher half of the pointer
     ; to the next word, which we know is NULL at this point. We use this to branch
     ; based on the most-significant bit of STATE, which is either 0x75 or 0xeb.
-    ; If it's 0xeb, we simply branch to INTERPRET, since the numeric value has already
+    ; If it's 0xeb, we simply branch to InterpreterLoop, since the numeric value has already
     ; been pushed.
     cmp byte[STATE], ah
-    js short INTERPRET
+    js short InterpreterLoop
     ; Otherwise, compile the literal.
     mov ax, LIT
-    call _COMMA
+    call COMMA
     pop ax
-    jmp short Compile
+    jmp short .compile
 
 ; When we get here, SI points to the code of the word, and AL contains
 ; the F_IMMEDIATE flag
-Found:
+.found:
     pop bx ; discard pointer to next entry
     or al, al
     xchg ax, si
 STATE equ $ ; 0xeb (jmp) -> interpret, 0x75 (jnz) -> compile
-    jmp short EXECUTE
-Compile:
-    call _COMMA
-    jmp short INTERPRET
-EXECUTE:
+    jmp short .execute
+.compile:
+    call COMMA
+    jmp short InterpreterLoop
+.execute:
 RetSP equ $+1
     mov di, RS0
     pop bx
@@ -181,9 +181,9 @@ RetSP equ $+1
 .executed:
     mov [RetSP], di
     push bx
-    jmp short INTERPRET
+    jmp short InterpreterLoop
 
-_COMMA:
+COMMA:
 HERE equ $+1
     mov [CompressedEnd], ax
     add word[HERE], 2
@@ -195,7 +195,7 @@ Return:
 ; CX = string length
 ; BX = numeric value
 ; clobbers SI and BP
-_WORD:
+ParseWord:
     mov si, [InputPtr]
     ; repe scasb would probably save some bytes if the registers worked out - scasb
     ; uses DI instead of SI :(
@@ -389,7 +389,7 @@ defcode RBRACK, "]"
 
 defcode SEMI, ";", F_IMMEDIATE
     mov ax, EXIT
-    call _COMMA
+    call COMMA
     jmp short LBRACK
 
 defcode COLON, ":"
@@ -397,7 +397,7 @@ defcode COLON, ":"
     push si
     xchg di, [HERE]
     call MakeLink
-    call _WORD
+    call ParseWord
     mov ax, cx
     stosb
     mov si, dx
