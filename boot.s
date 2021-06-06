@@ -86,6 +86,7 @@ REFILL:
 .loop:
     mov ah, 0
     int 0x16
+    call PutChar
     cmp al, 0x0d
     je short .enter
     cmp al, 0x08
@@ -96,10 +97,12 @@ REFILL:
     db 0xb1 ; skip the dec di below by loading its opcode to CL
 .write:
     stosb
-    call PutChar
     jmp short .loop
 .enter:
-    mov byte[di], 0
+    mov al, 0x0a
+    int 0x10
+    xchg ax, bx
+    stosb
 INTERPRET:
     call _WORD
     jcxz short REFILL
