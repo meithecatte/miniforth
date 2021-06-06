@@ -21,7 +21,7 @@ BlockBuf.end equ 0xb00
 InputPtr  equ 0xb04 ; dw
 RS0 equ 0xc00
 
-SPECIAL_BYTE equ 0x90
+SPECIAL_BYTE equ 0xff
 
 %assign savings 0
 

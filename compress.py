@@ -1,4 +1,5 @@
-SENTINEL = b'\x90\xef\xbe\xad\xde'
+SPECIAL_BYTE = b'\xff'
+SENTINEL = SPECIAL_BYTE + b'\xef\xbe\xad\xde'
 
 with open('raw.bin', 'rb') as f:
     data = f.read()
@@ -6,11 +7,12 @@ with open('raw.bin', 'rb') as f:
 output_offset = data.index(b'\xcc' * 20)
 chunks = data[output_offset:].lstrip(b'\xcc').split(SENTINEL)
 
+assert SPECIAL_BYTE not in chunks[0]
 compressed = bytearray(chunks[0])
 
 for chunk in chunks[1:]:
-    assert b'\x90' not in chunk
-    compressed.extend(b'\x90')
+    assert SPECIAL_BYTE not in chunk
+    compressed.extend(SPECIAL_BYTE)
     compressed.extend(chunk)
 
 # Make sure that exactly the right amount of space is allocated
