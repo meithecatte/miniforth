@@ -81,7 +81,6 @@ start:
     push dx ; for FORTH code
 
 REFILL:
-    xor bx, bx ; for int 0x10
     mov di, InputBuf
     mov [InputPtr], di
 .loop:
@@ -97,12 +96,10 @@ REFILL:
     db 0xb1 ; skip the dec di below by loading its opcode to CL
 .write:
     stosb
-    mov ah, 0x0e
-    int 0x10
+    call PutChar
     jmp short .loop
 .enter:
-    xchg ax, bx
-    stosb
+    mov byte[di], 0
 INTERPRET:
     call _WORD
     jcxz short REFILL
@@ -230,6 +227,12 @@ MakeLink:
     stosw
     ret
 
+PutChar:
+    xor bx, bx
+    mov ah, 0x0e
+    int 0x10
+    ret
+
 DiskPacket:
     db 0x10, 0
 .count:
@@ -304,24 +307,18 @@ defcode FROM_R, "r>"
     push bx
     mov bx, [di]
 
-; NOTE: we could extract the call to int 0x10 into a CALL-able routine. It
-; barely fails to save bytes, though (no change in size, and disrupts an optimization
-; in REFILL - it could fail to handle empty lines correctly).
 defcode EMIT, "emit"
     xchg bx, ax
-    mov cx, 1
-    jmp short UDOT.got_digit
+    call PutChar
+    pop bx
 
 defcode UDOT, "u."
-    xor cx, cx
     xchg ax, bx
     push " " - "0"
-    inc cx
 .split:
     xor dx, dx
     div word[BASE]
     push dx
-    inc cx
     or ax, ax
     jnz .split
 .print:
@@ -331,10 +328,9 @@ defcode UDOT, "u."
     jbe .got_digit
     add al, "A" - "0" - 10
 .got_digit:
-    xor bx, bx
-    mov ah, 0x0e
-    int 0x10
-    loop .print
+    call PutChar
+    cmp al, " "
+    jne short .print
     pop bx
 
 defcode DISKLOAD, "load"
