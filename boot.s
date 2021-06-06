@@ -223,8 +223,8 @@ BASE equ $
 
 ; Creates a link of the dictionary linked list at DI.
 MakeLink:
-    mov ax, [LATEST]
-    mov [LATEST], di
+    mov ax, di
+    xchg [LATEST], ax
     stosw
     ret
 
@@ -380,6 +380,11 @@ defcode LBRACK, "[", F_IMMEDIATE
 defcode RBRACK, "]"
     mov byte[STATE], 0x75
 
+defcode SEMI, ";", F_IMMEDIATE
+    mov ax, EXIT
+    call _COMMA
+    jmp short LBRACK
+
 defcode COLON, ":"
     push bx
     push si
@@ -399,11 +404,6 @@ defcode COLON, ":"
     pop bx
     xchg [HERE], di
     jmp short RBRACK
-
-defcode SEMI, ";", F_IMMEDIATE
-    mov ax, EXIT
-    call _COMMA
-    jmp short LBRACK
 ; INVARIANT: last word in compressed block does not rely on having NEXT appended by
 ; decompressor
 CompressedEnd:
