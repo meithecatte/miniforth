@@ -4,7 +4,7 @@
 The following standard words are available:
 
 ```
-+ ! @ c! c@ dup drop swap emit u. >r r> [ ] : ; load
++ - ! @ c! c@ dup drop swap emit u. >r r> [ ] : ; load
 ```
 
 Additionally, there is one non-standard word. `s: ( buf -- buf+len )` will copy the
@@ -55,13 +55,15 @@ The build will print the number of used bytes.
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **502** bytes are used,
-leaving 8 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **509** bytes are used,
+leaving 1 byte for any potential improvements.
 
-*Thanks to Ilya Kurdyukov for saving **22** bytes!*
+*Thanks to Ilya Kurdyukov for saving **22** bytes!* These savings have been promptly
+reinvested.
 
 If a feature is strongly desirable, potential tradeoffs include:
 
+ - 7 bytes: Remove the `-` word.
  - 12 bytes: Remove the `emit` word.
  - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This
    essentially changes the API with each edit (NOTE: it's 9 bytes because this makes it
