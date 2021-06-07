@@ -370,16 +370,15 @@ DRIVE_NUMBER equ $+1
 
 ;; Copies the rest of the line at buf.
 defcode LINE, "s:" ; ( buf -- buf+len )
-    xchg bx, di
     xchg si, [InputPtr]
 .copy:
     lodsb
-    stosb
+    mov [bx], al
+    inc bx
     or al, al
     jnz short .copy
 .done:
-    dec di
-    xchg bx, di
+    dec bx
     xchg si, [InputPtr]
 
 defcode LBRACK, "[", F_IMMEDIATE
