@@ -37,8 +37,8 @@ the stack on boot:
  - `>IN` is a word at `0xb02`. It stores the pointer to the first unparsed character
    of the null-terminated input buffer.
  - The stack on boot is `LATEST STATE BASE HERE #DISK` (with `#DISK` on top).
- - `STATE` has a non-standard format - it is a byte, where `0x75` means compiling,
-   and `0xeb` means interpreting.
+ - `STATE` has a non-standard format - it is a byte, where `0x74` means compiling,
+   and `0xa8` means interpreting.
  - `#DISK` is not a variable, but the saved disk number of the boot media
 
 ## Building
@@ -55,8 +55,8 @@ The build will print the number of used bytes.
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **509** bytes are used,
-leaving 1 byte for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **507** bytes are used,
+leaving 3 byte for any potential improvements.
 
 *Thanks to Ilya Kurdyukov for saving **22** bytes!* These savings have been promptly
 reinvested.

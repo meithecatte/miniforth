@@ -158,7 +158,9 @@ LATEST equ $+1
     mov ax, LIT
     call COMMA
     pop ax
-    jmp short .compile
+.compile:
+    call COMMA
+    jmp short InterpreterLoop
 
 .found:
     pop bx ; discard pointer to next entry
@@ -166,12 +168,10 @@ LATEST equ $+1
     ; the F_IMMEDIATE flag
     or al, al
     xchg ax, si
-STATE equ $ ; 0xeb (jmp) -> interpret, 0x75 (jnz) -> compile
-    jmp short .execute
-.compile:
-    call COMMA
-    jmp short InterpreterLoop
-.execute:
+STATE equ $ ; 0xa8 (skip offset with TEST AL) -> interpret, 0x74 (jz) -> compile
+    db 0xa8, .compile-($+2)
+
+    ; Execute the word
 RetSP equ $+1
     mov di, RS0
     pop bx
@@ -386,10 +386,10 @@ defcode LINE, "s:" ; ( buf -- buf+len )
     xchg si, [InputPtr]
 
 defcode LBRACK, "[", F_IMMEDIATE
-    mov byte[STATE], 0xeb
+    mov byte[STATE], 0xa8
 
 defcode RBRACK, "]"
-    mov byte[STATE], 0x75
+    mov byte[STATE], 0x74
 
 defcode SEMI, ";", F_IMMEDIATE
     mov ax, EXIT
