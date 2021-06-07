@@ -14,10 +14,10 @@
 ; Memory layout:
 ; 0000 - 03ff  IVT
 ; 0400 - 04ff  Reserved by BIOS
-; 0600 - 06ff  Keyboard input buffer
-; 0700 - 0aff  Disk block buffer (for LOAD)
-; 0b00 - 0bff  Assorted variables (only 3 bytes are actually used at the moment)
-; 0c00 - ...   Return stack (grows upwards)
+; 0500 - 05ff  Keyboard input buffer
+; 0600 - 09ff  Disk block buffer (for LOAD)
+; 0a00 - 0aff  Assorted variables (only 3 bytes are actually used at the moment)
+; 0b00 - ...   Return stack (grows upwards)
 ; ...  - ...   Space for manual allocation by user
 ; ...  -~7c10  Parameter stack
 ; 7c00 - 7dff  MBR (code loaded by BIOS)
@@ -27,11 +27,11 @@ F_IMMEDIATE equ 0x80
 F_HIDDEN    equ 0x40
 F_LENMASK   equ 0x1f
 
-InputBuf equ 0x600
-BlockBuf equ 0x700
-BlockBuf.end equ 0xb00
-InputPtr  equ 0xb02 ; dw
-RS0 equ 0xc00
+InputBuf equ 0x500
+BlockBuf equ 0x600
+BlockBuf.end equ 0xa00
+InputPtr  equ 0xa02 ; dw
+RS0 equ 0xb00
 
 SPECIAL_BYTE equ 0xff
 
@@ -102,7 +102,7 @@ ReadLine:
     je short .enter
     cmp al, 0x08
     jne short .write
-    cmp di, InputBuf
+    cmp di, InputBuf ; underflow check
     je short .loop
     dec di
     db 0x3c ; skip the stosb below by comparing its opcode with AL
@@ -114,7 +114,7 @@ ReadLine:
     call PutChar
     mov al, 0x0a
     int 0x10
-    xchg ax, bx
+    xchg ax, bx ; write the null terminator by using the BX = 0 from PutChar
     stosb
 InterpreterLoop:
     call ParseWord
@@ -124,6 +124,7 @@ InterpreterLoop:
 ; SI = dictionary pointer
 ; DX = string pointer
 ; CX = string length
+; Take care to preserve BX, which holds the numeric value.
 LATEST equ $+1
     mov si, 0
 .loop:
@@ -194,10 +195,10 @@ Return:
 ; DX = pointer to string
 ; CX = string length
 ; BX = numeric value
-; clobbers SI and BP
+; clobbers SI
 ParseWord:
     mov si, [InputPtr]
-    ; repe scasb would probably save some bytes if the registers worked out - scasb
+    ; repe scasb would probably save some bytes here if the registers worked out - scasb
     ; uses DI instead of SI :(
 .skiploop:
     mov dx, si ; if we exit the loop in this iteration, dx will point to the first letter
@@ -212,10 +213,10 @@ ParseWord:
     and al, ~0x20 ; to uppercase, but also integrate null check and space check
     jz short Return
     inc cx
-    sub al, 0x10
+    sub al, "0" &~0x20
     cmp al, 9
     jbe .digit_ok
-    sub al, "A" - 0x10 - 10
+    sub al, "A" - ("0" &~0x20) - 10
 .digit_ok
     cbw
     ; imul bx, bx, <BASE> but yasm insists on encoding the immediate in just one byte...

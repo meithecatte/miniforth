@@ -66,5 +66,8 @@ If a feature is strongly desirable, potential tradeoffs include:
  - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This
    essentially changes the API with each edit (NOTE: it's 9 bytes because this makes it
    beneficial to keep `>IN` in the literal field of an instruction).
+ - ?? bytes: Instead of storing the names of the primitives, let the user pick their own
+   names on boot. This would take very little new code — the decompressor would simply have
+   to borrow some code from `:`. However, reboots would become somewhat bothersome.
 
 [FORTH]: https://en.wikipedia.org/wiki/Forth_(programming_language)
