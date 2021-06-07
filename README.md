@@ -63,8 +63,12 @@ reinvested.
 
 If a feature is strongly desirable, potential tradeoffs include:
 
+ - 1 byte: Use a `SPECIAL_BYTE` for compression such that it can be turned into
+   `0xad` with `inc [di-1]` or another instruction of the same size. This has
+   the disadvantage that avoiding occurances of `SPECIAL_BYTE` becomes harder,
+   and the solution of simply changing the special byte no longer works.
  - 7 bytes: Remove the `-` word (with the expectation that the user will assemble their
-   own primitives later).
+   own primitives later anyway).
  - 6 bytes: Remove the `+` word (with the expectation that the user will define `: negate 0 swap - ; : + negate - ;`
  - 12 bytes: Remove the `emit` word.
  - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This
