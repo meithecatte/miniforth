@@ -160,10 +160,10 @@ LATEST equ $+1
     pop ax
     jmp short .compile
 
-; When we get here, SI points to the code of the word, and AL contains
-; the F_IMMEDIATE flag
 .found:
     pop bx ; discard pointer to next entry
+    ; When we get here, SI points to the code of the word, and AL contains
+    ; the F_IMMEDIATE flag
     or al, al
     xchg ax, si
 STATE equ $ ; 0xeb (jmp) -> interpret, 0x75 (jnz) -> compile
@@ -284,17 +284,17 @@ defcode MINUS, "-"
     sub ax, bx
     xchg bx, ax
 
-defcode LOAD, "@"
+defcode PEEK, "@"
     mov bx, [bx]
 
-defcode STORE, "!"
+defcode POKE, "!"
     pop word [bx]
     pop bx
 
-defcode CLOAD, "c@"
+defcode CPEEK, "c@"
     movzx bx, byte[bx]
 
-defcode CSTORE, "c!"
+defcode CPOKE, "c!"
     pop ax
     mov [bx], al
     pop bx
@@ -347,7 +347,7 @@ defcode UDOT, "u."
     jne short .print
     pop bx
 
-defcode DISKLOAD, "load"
+defcode LOAD, "load"
     pusha
     mov si, DiskPacket
     lea di, [si+4]
