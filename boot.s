@@ -77,16 +77,16 @@ start:
     mov cx, COMPRESSED_SIZE
 .decompress:
     lodsb
+    stosb
     cmp al, SPECIAL_BYTE
     jnz short .not_special
+    dec di
     mov ax, 0xffad ; lodsw / jmp ax
     stosw
     mov al, 0xe0
     stosb
     call MakeLink
-    db 0x3c ; skip the stosb below by comparing its opcode with AL
 .not_special:
-    stosb
     loop .decompress
 
     mov [DRIVE_NUMBER], dl
@@ -100,14 +100,14 @@ ReadLine:
     int 0x16
     cmp al, 0x0d
     je short .enter
+    stosb
     cmp al, 0x08
     jne short .write
+    dec di
     cmp di, InputBuf ; underflow check
     je short .loop
     dec di
-    db 0x3c ; skip the stosb below by comparing its opcode with AL
 .write:
-    stosb
     call PutChar
     jmp short .loop
 .enter:
