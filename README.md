@@ -63,7 +63,9 @@ reinvested.
 
 If a feature is strongly desirable, potential tradeoffs include:
 
- - 7 bytes: Remove the `-` word.
+ - 7 bytes: Remove the `-` word (with the expectation that the user will assemble their
+   own primitives later).
+ - 6 bytes: Remove the `+` word (with the expectation that the user will define `: negate 0 swap - ; : + negate - ;`
  - 12 bytes: Remove the `emit` word.
  - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This
    essentially changes the API with each edit (NOTE: it's 9 bytes because this makes it

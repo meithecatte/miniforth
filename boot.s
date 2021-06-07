@@ -127,7 +127,7 @@ InterpreterLoop:
 ; Take care to preserve BX, which holds the numeric value.
 LATEST equ $+1
     mov si, 0
-.loop:
+.find:
     lodsw
     push ax ; save pointer to next entry
     lodsb
@@ -142,7 +142,7 @@ LATEST equ $+1
 .next:
     pop si
     or si, si
-    jnz short .loop
+    jnz short .find
 
     ; It's a number. Push its value - we'll pop it later if it turns out we need to compile
     ; it instead.
@@ -349,7 +349,6 @@ defcode UDOT, "u."
 
 defcode DISKLOAD, "load"
     pusha
-.retry:
     mov si, DiskPacket
     lea di, [si+4]
     mov ax, BlockBuf
@@ -369,7 +368,7 @@ DRIVE_NUMBER equ $+1
     mov dl, 0
     mov ah, 0x42
     int 0x13
-    jc short .retry
+    jc short $
     popa
     pop bx
 
