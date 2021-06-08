@@ -148,7 +148,7 @@ LATEST equ $+1
     ; it instead.
     push bx
     ; At this point, AH is zero, since it contains the higher half of the pointer
-    ; to the next word, which we know is NULL at this point.
+    ; to the next word, which we know is NULL.
     cmp byte[STATE], ah
     jnz short InterpreterLoop
     ; Otherwise, compile the literal.
@@ -380,6 +380,7 @@ defcode LINE, "s:" ; ( buf -- buf+len )
     jnz short .copy
 .done:
     dec bx
+    dec si
     xchg si, [InputPtr]
 
 defcode LBRACK, "[", F_IMMEDIATE
