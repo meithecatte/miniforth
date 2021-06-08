@@ -148,12 +148,9 @@ LATEST equ $+1
     ; it instead.
     push bx
     ; At this point, AH is zero, since it contains the higher half of the pointer
-    ; to the next word, which we know is NULL at this point. We use this to branch
-    ; based on the most-significant bit of STATE, which is either 0x74 or 0xa8.
-    ; If it's 0xa8, we simply branch to InterpreterLoop, since the numeric value has already
-    ; been pushed.
+    ; to the next word, which we know is NULL at this point.
     cmp byte[STATE], ah
-    js short InterpreterLoop
+    jnz short InterpreterLoop
     ; Otherwise, compile the literal.
     mov ax, LIT
     call COMMA
@@ -166,10 +163,10 @@ LATEST equ $+1
     pop bx ; discard pointer to next entry
     ; When we get here, SI points to the code of the word, and AL contains
     ; the F_IMMEDIATE flag
-    or al, al
+STATE equ $+1
+    or al, 1
     xchg ax, si ; both codepaths need the pointer in AX
-STATE equ $ ; 0xa8 (skip offset with TEST AL) -> interpret, 0x74 (jz) -> compile
-    db 0xa8, .compile-($+2)
+    jz short .compile
 
     ; Execute the word
 RetSP equ $+1
@@ -386,10 +383,10 @@ defcode LINE, "s:" ; ( buf -- buf+len )
     xchg si, [InputPtr]
 
 defcode LBRACK, "[", F_IMMEDIATE
-    mov byte[STATE], 0xa8
+    mov byte[STATE], 1
 
 defcode RBRACK, "]"
-    mov byte[STATE], 0x74
+    mov byte[STATE], 0
 
 defcode COLON, ":"
     pusha
@@ -400,9 +397,12 @@ defcode COLON, ":"
     stosb
     mov si, dx
     rep movsb
+
     mov al, 0xe8 ; call
     stosb
-    mov ax, DOCOL-2
+    ; The offset is defined as (call target) - (ip after the call instruction)
+    ; That works out to DOCOL - (di + 2) = DOCOL - 2 - di
+    mov ax, DOCOL - 2
     sub ax, di
     stosw
     mov [HERE], di
