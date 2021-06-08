@@ -165,7 +165,7 @@ LATEST equ $+1
     ; the F_IMMEDIATE flag
 STATE equ $+1
     or al, 1
-    xchg ax, si ; both codepaths need the pointer in AX
+    xchg ax, si ; both codepaths need the pointer to be in AX
     jz short .compile
 
     ; Execute the word
@@ -383,10 +383,10 @@ defcode LINE, "s:" ; ( buf -- buf+len )
     xchg si, [InputPtr]
 
 defcode LBRACK, "[", F_IMMEDIATE
-    mov byte[STATE], 1
+    inc byte[STATE]
 
 defcode RBRACK, "]"
-    mov byte[STATE], 0
+    dec byte[STATE]
 
 defcode COLON, ":"
     pusha
