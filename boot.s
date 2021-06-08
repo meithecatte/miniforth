@@ -149,8 +149,8 @@ LATEST equ $+1
     push bx
     ; At this point, AH is zero, since it contains the higher half of the pointer
     ; to the next word, which we know is NULL at this point. We use this to branch
-    ; based on the most-significant bit of STATE, which is either 0x75 or 0xeb.
-    ; If it's 0xeb, we simply branch to InterpreterLoop, since the numeric value has already
+    ; based on the most-significant bit of STATE, which is either 0x74 or 0xa8.
+    ; If it's 0xa8, we simply branch to InterpreterLoop, since the numeric value has already
     ; been pushed.
     cmp byte[STATE], ah
     js short InterpreterLoop
@@ -167,7 +167,7 @@ LATEST equ $+1
     ; When we get here, SI points to the code of the word, and AL contains
     ; the F_IMMEDIATE flag
     or al, al
-    xchg ax, si
+    xchg ax, si ; both codepaths need the pointer in AX
 STATE equ $ ; 0xa8 (skip offset with TEST AL) -> interpret, 0x74 (jz) -> compile
     db 0xa8, .compile-($+2)
 
@@ -391,15 +391,9 @@ defcode LBRACK, "[", F_IMMEDIATE
 defcode RBRACK, "]"
     mov byte[STATE], 0x74
 
-defcode SEMI, ";", F_IMMEDIATE
-    mov ax, EXIT
-    call COMMA
-    jmp short LBRACK
-
 defcode COLON, ":"
-    push bx
-    push si
-    xchg di, [HERE]
+    pusha
+    mov di, [HERE]
     call MakeLink
     call ParseWord
     mov ax, cx
@@ -411,10 +405,14 @@ defcode COLON, ":"
     mov ax, DOCOL-2
     sub ax, di
     stosw
-    pop si
-    pop bx
-    xchg [HERE], di
+    mov [HERE], di
+    popa
     jmp short RBRACK
+
+defcode SEMI, ";", F_IMMEDIATE
+    mov ax, EXIT
+    call COMMA
+    jmp short LBRACK
 ; INVARIANT: last word in compressed block does not rely on having NEXT appended by
 ; decompressor
 CompressedEnd:

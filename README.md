@@ -55,8 +55,8 @@ The build will print the number of used bytes.
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **507** bytes are used,
-leaving 3 byte for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **505** bytes are used,
+leaving 5 byte for any potential improvements.
 
 *Thanks to Ilya Kurdyukov for saving **22** bytes!* These savings have been promptly
 reinvested.
