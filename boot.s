@@ -244,8 +244,8 @@ DiskPacket:
 .count:
     dw 2
 .buffer:
-    ; rest is zeroed out at runtime, overwriting the compressed data, which is no longer
-    ; necessary
+    ; rest is filled out at runtime, overwriting the compressed data,
+    ; which isn't necessary anymore
 
 CompressedData:
     times COMPRESSED_SIZE db 0xcc
@@ -281,28 +281,28 @@ defcode MINUS, "-"
     sub ax, bx
     xchg bx, ax
 
-defcode PEEK, "@"
+defcode PEEK, "@" ; ( addr -- val )
     mov bx, [bx]
 
-defcode POKE, "!"
+defcode POKE, "!" ; ( val addr -- )
     pop word [bx]
     pop bx
 
-defcode CPEEK, "c@"
+defcode CPEEK, "c@" ; ( addr -- ch )
     movzx bx, byte[bx]
 
-defcode CPOKE, "c!"
+defcode CPOKE, "c!" ; ( ch addr -- )
     pop ax
     mov [bx], al
     pop bx
 
-defcode DUP, "dup"
+defcode DUP, "dup" ; ( a -- a a )
     push bx
 
-defcode DROP, "drop"
+defcode DROP, "drop" ; ( a -- )
     pop bx
 
-defcode SWAP, "swap"
+defcode SWAP, "swap" ; ( a b -- b a )
     pop ax
     push bx
     xchg ax, bx
@@ -346,8 +346,7 @@ defcode UDOT, "u."
 
 defcode LOAD, "load"
     pusha
-    mov si, DiskPacket
-    lea di, [si+4]
+    mov di, DiskPacket.buffer
     mov ax, BlockBuf
     mov [InputPtr], ax
     stosw
@@ -364,12 +363,13 @@ defcode LOAD, "load"
 DRIVE_NUMBER equ $+1
     mov dl, 0
     mov ah, 0x42
+    mov si, DiskPacket
     int 0x13
     jc short $
     popa
     pop bx
 
-;; Copies the rest of the line at buf.
+;; Copies the rest of the line to buf.
 defcode LINE, "s:" ; ( buf -- buf+len )
     xchg si, [InputPtr]
 .copy:

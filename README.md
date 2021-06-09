@@ -34,11 +34,11 @@ Due to space constraints, variables such as `STATE` or `BASE` couldn't be expose
 separate words. Depending on the variable, the address is either hardcoded or pushed onto
 the stack on boot:
 
- - `>IN` is a word at `0xb02`. It stores the pointer to the first unparsed character
+ - `>IN` is a word at `0xa02`. It stores the pointer to the first unparsed character
    of the null-terminated input buffer.
  - The stack on boot is `LATEST STATE BASE HERE #DISK` (with `#DISK` on top).
- - `STATE` has a non-standard format - it is a byte, where `0x74` means compiling,
-   and `0xa8` means interpreting.
+ - `STATE` has a non-standard format - it is a byte, where `0` means compiling,
+   and `1` means interpreting.
  - `#DISK` is not a variable, but the saved disk number of the boot media
 
 ## Building
@@ -70,6 +70,7 @@ If a feature is strongly desirable, potential tradeoffs include:
  - 7 bytes: Remove the `-` word (with the expectation that the user will assemble their
    own primitives later anyway).
  - 6 bytes: Remove the `+` word (with the expectation that the user will define `: negate 0 swap - ; : + negate - ;`
+   - Note that bootstrapping with neither `+` nor `-` would be, to put it mildly, quite hard.
  - 12 bytes: Remove the `emit` word.
  - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This
    essentially changes the API with each edit (NOTE: it's 9 bytes because this makes it
