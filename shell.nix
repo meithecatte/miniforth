@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> {} }:
 
 with pkgs; mkShell {
-  nativeBuildInputs = [ yasm qemu ];
+  nativeBuildInputs = [ yasm qemu tup python3 ];
 }
 

@@ -44,17 +44,39 @@ the stack on boot:
    and `1` means interpreting.
  - `#DISK` is not a variable, but the saved disk number of the boot media
 
-## Building
+## Building a disk image
 
-Run `make`. You will need yasm and python3. This will create the following artifacts:
+If you have Nix installed, get the build dependencies with `nix-shell`.
+Otherwise, you will need `yasm`, `python3`, and optionally, `tup`
+(Tup is used instead of Make for Tup's automatic dependency management,
+which would be a pain for `mkdisk.py`).
 
-- `boot.bin` - the built bootsector. You can run it in QEMU with `make run`.
-- `test.img` - a disk image with the contents of `test.fth` added to block 1.
-  You can run it in QEMU with `make test`.
+Run
+
+```
+tup
+```
+
+A non-incremental build can be done without `tup` with the following commands:
+
+```
+yasm -f bin boot.s -o raw.bin -l boot.lst
+python3 compress.py
+python3 mkdisk.py
+```
+
+This will create the following artifacts:
+
+- `boot.bin` - the built bootsector.
+- `disk.img` - a disk image with the contents of `block*.fth` installed into
+  the blocks.
 - `boot.lst` - a listing with the raw bytes of each instruction.
-   Note that the `dd 0xdeadbeef` are removed during post-processing.
+   Note that the `dd 0xdeadbeef` are removed by `compress.py`.
 
-The build will print the number of used bytes.
+The build will print the number of used bytes, as well as the number of block files found.
+You can run the resulting disk image in QEMU with `./run.sh`, or pass `./run.sh boot.bin`
+if you do not want to include the blocks in your disk. QEMU will run in curses mode, exit
+with <kbd>Alt</kbd> + <kbd>2</kbd>, <kbd>q</kbd>, <kbd>Enter</kbd>.
 
 ## Free bytes
 
