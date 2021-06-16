@@ -24,14 +24,16 @@ variable srcpos
 : s+ srcpos @ s: dup u. srcpos ! ;
 : move-checkpoint srcpos @ checkpoint ! ;
 : doit checkpoint @ run move-checkpoint ;
-: ax 0 ; : cx 1 ; : dx 2 ; : bx 3 ; : sp 4 ; : bp 5 ; : si 6 ; : di 7 ;
-: al 0 ; : cl 1 ; : dl 2 ; : bl 3 ; : ah 4 ; : ch 5 ; : dh 6 ; : bh 7 ;
-: :code : [[ here 3 - dp ! ;
-: stosb, aa c, ; : stosw, ab c, ; : lodsb, ac c, ; : lodsw, ad c, ;
-: dbl dup + ;
-: 3shl dbl dbl dbl ;
-: rm-r, 3shl + c0 + c, ;
-: jmpm, ff c, 4 rm-r, ;
-: next, lodsw, ax jmpm, ;
-: movw-rr, 8b c, rm-r, ;
-: push, 50 + c, ;
+variable x
+: lobyte x ! x c@ ;
+: hibyte x ! x 1 + c@ ;
+: 2* dup + ;
+: s 2* dup >r hibyte + r> lobyte ;
+: nb 0 swap s s s s s s s s drop ;
+: nbw dup hibyte nb swap lobyte nb + ;
+: 1bit nbw nb nb nb ;
+: (branch) r> @ >r ;
+create bb 2 cells allot
+: (0branch) r> dup @ bb ! cell+ bb cell+ !
+1bit cells bb + @ >r ;
+2 load
