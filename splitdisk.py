@@ -26,11 +26,9 @@ def do_split(content, old):
                 output += word + (sep or b' ')
         else:
             for word in new_words[L:R]:
-                if word.startswith(b':'):
-                    output += b'\n'
-                else:
-                    output += b' '
-                output += word
+                if word.startswith(b':') and output.endswith(b' '):
+                    output = output[:-1] + b'\n'
+                output += word + b' '
     output = output.strip()
     output += b'\n'
     return output
@@ -43,6 +41,7 @@ if __name__ == "__main__":
         data = f.read()
 
     for i in range(1, count + 1):
+        #print('Processing block', i)
         filename = 'block%d.fth' % i
         block = data[1024*i:1024*(i+1)]
         if b'\x00' in block:
