@@ -29,7 +29,6 @@ next,
 : repeat compile (branch) <br >br ; immediate
 : seek begin dup c@ 0<> while 1 + repeat ;
 : type begin dup while 1 - >r dup c@ emit 1 + r> repeat drop drop ;
-: r@ r> r> dup >r >r ;
 : over >r dup r> swap ;
 : rdrop r> r> drop >r ;
 :code or ax pop, ax bx orw-rr, next,
