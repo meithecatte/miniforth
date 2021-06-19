@@ -22,10 +22,10 @@ bx pop, next,
 1F constant lenmask
 : header-name cell+ count lenmask and ;
 : visible? cell+ c@ 40 and 0= ;
-: words-at begin dup while
+: words-in begin dup while
 dup visible? if dup header-name type space then
 @ repeat drop ;
-: words latest @ words-at ;
+: words latest @ words-in ;
 sp@ constant s0
 : sarw1, D1 c, 7 rm-r, ;
 :code 2/ bx sarw1, next,
