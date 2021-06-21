@@ -31,7 +31,7 @@ variable srcpos
 : 2* dup + ;
 : 3shl 2* 2* 2* ;
 : rm-r, 3shl + c0 + c, ;
-: jmpm, ff c, 4 rm-r, ;
-: next, lodsw, ax jmpm, ;
+: jmp-r, ff c, 4 rm-r, ;
+: next, lodsw, ax jmp-r, ;
 : movw-rr, 8b c, rm-r, ;
 : push, 50 + c, ;
