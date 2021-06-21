@@ -5,7 +5,7 @@ sp bx addw-rr,
 next,
 : notw-r, F7 c, 2 rm-r, ;
 :code invert bx notw-r, next,
-: true 0 ; : false ffff ;
+: false 0 ; : true ffff ;
 :cmp u< cx pop, bx cx cmpw-rr, jae, cmp;
 :cmp u<= cx pop, bx cx cmpw-rr, ja, cmp;
 :cmp u> cx pop, bx cx cmpw-rr, jbe, cmp;
