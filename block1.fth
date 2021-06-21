@@ -28,8 +28,8 @@ variable srcpos
 : al 0 ; : cl 1 ; : dl 2 ; : bl 3 ; : ah 4 ; : ch 5 ; : dh 6 ; : bh 7 ;
 : :code : [[ here 3 - dp ! ;
 : stosb, aa c, ; : stosw, ab c, ; : lodsb, ac c, ; : lodsw, ad c, ;
-: dbl dup + ;
-: 3shl dbl dbl dbl ;
+: 2* dup + ;
+: 3shl 2* 2* 2* ;
 : rm-r, 3shl + c0 + c, ;
 : jmpm, ff c, 4 rm-r, ;
 : next, lodsw, ax jmpm, ;
