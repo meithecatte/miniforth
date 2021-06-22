@@ -18,3 +18,9 @@ rep, stosb,
 dx di movw-rr,
 bx pop,
 next,
+variable checkpoint
+variable srcpos
+: s+ srcpos @ s: dup u. srcpos ! ;
+: move-checkpoint srcpos @ checkpoint ! ;
+: doit checkpoint @ run move-checkpoint ;
+: appending seek dup u. srcpos ! move-checkpoint ;

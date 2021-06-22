@@ -37,3 +37,4 @@ variable pos
 : :cmp :code ax ax xorw-rr, ;
 : cmp; j> ax decw, >j ax bx movw-rr, next, ;
 :cmp 0= bx bx orw-rr, jnz, cmp;
+-->

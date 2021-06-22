@@ -19,11 +19,11 @@ here 2 - @ : 'exit [ lit, ] ;
 : constant : [[ lit, 'exit , ;
 : create : [[ here 3 cells + lit, 'exit , ;
 : variable create 1 cells allot ;
-variable checkpoint
-variable srcpos
-: s+ srcpos @ s: dup u. srcpos ! ;
-: move-checkpoint srcpos @ checkpoint ! ;
-: doit checkpoint @ run move-checkpoint ;
+create blk 1 ,
+: load' load ;
+: load dup blk ! load' ;
+:
+--> blk @ 1 + load ;
 : ax 0 ; : cx 1 ; : dx 2 ; : bx 3 ; : sp 4 ; : bp 5 ; : si 6 ; : di 7 ;
 : al 0 ; : cl 1 ; : dl 2 ; : bl 3 ; : ah 4 ; : ch 5 ; : dh 6 ; : bh 7 ;
 : :code : [[ here 3 - dp ! ;
@@ -35,3 +35,4 @@ variable srcpos
 : next, lodsw, ax jmp-r, ;
 : movw-rr, 8b c, rm-r, ;
 : push, 50 + c, ;
+-->
