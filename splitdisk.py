@@ -26,7 +26,8 @@ def do_split(content, old):
                 output += word + (sep or b' ')
         else:
             for word in new_words[L:R]:
-                if word.startswith(b':') and output.endswith(b' '):
+                split = word.startswith(b':') or word in [b'-->', b'variable']
+                if split and output.endswith(b' '):
                     output = output[:-1] + b'\n'
                 output += word + b' '
     output = output.strip()
@@ -37,21 +38,20 @@ if __name__ == "__main__":
     _, img, count = sys.argv
     count = int(count)
 
-    with open(img, 'rb') as f:
-        data = f.read()
-
-    for i in range(1, count + 1):
-        #print('Processing block', i)
-        filename = 'block%d.fth' % i
-        block = data[1024*i:1024*(i+1)]
-        if b'\x00' in block:
-            block = block[:block.index(b'\x00')]
-        old_content = b''
-        try:
-            with open(filename, 'rb') as f:
-                old_content = f.read().strip()
-        except FileNotFoundError:
-            pass
-        block = do_split(block, old_content)
-        with open(filename, 'wb') as f:
-            f.write(block)
+    with open(img, 'rb') as img_file:
+        img_file.read(1024)
+        for i in range(1, count + 1):
+            #print('Processing block', i)
+            filename = 'block%d.fth' % i
+            block = img_file.read(1024)
+            if b'\x00' in block:
+                block = block[:block.index(b'\x00')]
+            old_content = b''
+            try:
+                with open(filename, 'rb') as f:
+                    old_content = f.read().strip()
+            except FileNotFoundError:
+                pass
+            block = do_split(block, old_content)
+            with open(filename, 'wb') as f:
+                f.write(block)
