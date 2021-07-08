@@ -14,6 +14,13 @@ import sys
 def seps(s):
     return re.findall(rb'\s+', s)
 
+def into_lines(block):
+    output = b''
+    for i in range(0, len(block), 64):
+        line = block[i:i+64].rstrip(b' ')
+        output += line + b'\n'
+    return output
+
 def do_split(content, old):
     old_words = old.split()
     new_words = content.split()
@@ -46,12 +53,15 @@ if __name__ == "__main__":
             block = img_file.read(1024)
             if b'\x00' in block:
                 block = block[:block.index(b'\x00')]
-            old_content = b''
-            try:
-                with open(filename, 'rb') as f:
-                    old_content = f.read().strip()
-            except FileNotFoundError:
-                pass
-            block = do_split(block, old_content)
+            if i <= 6: # HACK: later blocks are formatted properly already
+                old_content = b''
+                try:
+                    with open(filename, 'rb') as f:
+                        old_content = f.read().strip()
+                except FileNotFoundError:
+                    pass
+                block = do_split(block, old_content)
+            else:
+                block = into_lines(block)
             with open(filename, 'wb') as f:
                 f.write(block)

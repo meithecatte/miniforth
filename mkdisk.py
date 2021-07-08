@@ -13,7 +13,11 @@ for i in count(1):
     except FileNotFoundError:
         break
 
-    block = block.strip().replace(b'\n', b' ')
+    lines = block.rstrip(b'\n').split(b'\n')
+    if len(lines) <= 16 and all(len(line) <= 64 for line in lines):
+        block = b''.join(line.ljust(64) for line in lines)
+    else:
+        block = block.strip().replace(b'\n', b' ')
     if len(block) > 1024:
         print('Block', i, 'is', len(block), 'bytes')
         sys.exit(1)
