@@ -19,8 +19,8 @@ the `0123456789abcdef` of hexadecimal. On boot, the number base is set to hexade
 Backspace works, but doesn't erase the input with spaces, so until you write something else,
 the screen will look a bit weird.
 
-See the blogpost, [Fitting a FORTH in 512 bytes][blog], for my motivation for
-writing this and the details of the code.
+The main goal of the project is bootstrapping a full system on top of Miniforth
+as a seed. I describe this in more details [on my blog][blog].
 
 ## Blocks
 
@@ -105,4 +105,4 @@ If a feature is strongly desirable, potential tradeoffs include:
    to borrow some code from `:`. However, reboots would become somewhat bothersome.
 
 [FORTH]: https://en.wikipedia.org/wiki/Forth_(programming_language)
-[blog]: https://niedzejkob.p4.team/bootstrap/miniforth/
+[blog]: https://niedzejkob.p4.team/bootstrap/
