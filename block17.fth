@@ -13,4 +13,4 @@
 : >digits ( str -- str' ud' ) 0 0 2>r  begin dup while
   over c@  [char] . = if  1 /string  is-dnum on  else
   over c@  digit if s>d 2r> base @ ud*u d+ 2>r  1 /string else
-  2r> exit then then repeat 2r> ;
+  2r> exit then then repeat 2r> ;                            -->

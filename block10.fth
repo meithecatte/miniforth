@@ -1,7 +1,7 @@
 ( dictionary lookup )
 : search-in ( name len first-nt -- nt|0 )
 begin dup while >r
-2dup r@ header-name s= if
+2dup r@ header-name s= r@ visible? and if
 2drop r> exit then
 r> @ repeat >r 2drop r> ;
 : find latest @ search-in ;

@@ -78,6 +78,33 @@ You can run the resulting disk image in QEMU with `./run.sh`, or pass `./run.sh 
 if you do not want to include the blocks in your disk. QEMU will run in curses mode, exit
 with <kbd>Alt</kbd> + <kbd>2</kbd>, <kbd>q</kbd>, <kbd>Enter</kbd>.
 
+## Getting started
+
+When Miniforth boots, no prompt will be shown on the screen. However, if what
+you're typing is being shown on the screen, it is working. You can try:
+
+ - doing some arithmetic: `1 2 + u.`
+ - loading the code I've developed on top of Miniforth: `1 load`, followed by,
+   for example, `words` on the next line.
+
+## Hardware considerations
+
+Running Miniforth on real hardware is certainly possible. In fact, I hardly use
+emulation for it these days. Anything not unreasonably old should work. However,
+most implementations of UEFI have a bug/misfeature where they try to parse the
+partition table of an MBR before booting from it. As Miniforth does not include
+a partition table in the bootsector (as there is simply no space for it), this
+prevents booting on most UEFI computers.
+
+To remedy this, this repository includes a small chainloader to fix it —
+`uefix.s`. While running `tup` compiles it, you can also do that manually with
+
+```bash
+yasm -f bin uefix.s -o uefix.bin
+```
+
+Then, install `uefix.bin` in sector 0, and `boot.bin` in sector 1.
+
 ## Free bytes
 
 At this moment, not counting the `55 AA` signature at the end, **504** bytes are used,

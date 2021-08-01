@@ -8,3 +8,9 @@
   begin >r 2dup <= r> swap while
     2 pick over copy-block
   1+ 2>r 1+ 2r> repeat drop 2drop ;
+
+
+
+
+
+                                                             -->
