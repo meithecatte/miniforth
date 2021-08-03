@@ -85,7 +85,8 @@ you're typing is being shown on the screen, it is working. You can try:
 
  - doing some arithmetic: `1 2 + u.`
  - loading the code I've developed on top of Miniforth: `1 load`, followed by,
-   for example, `words` on the next line.
+   for example, `7 19 index` on the next line (blocks 1-6 do not have a
+   description comment).
 
 ## Hardware considerations
 
@@ -119,6 +120,10 @@ If a feature is strongly desirable, potential tradeoffs include:
    `0xad` with `inc [di-1]` or another instruction of the same size. This has
    the disadvantage that avoiding occurances of `SPECIAL_BYTE` becomes harder,
    and the solution of simply changing the special byte no longer works.
+ - ?? bytes: Don't expose the `BASE` variable, hardcode hexadecimal — as it
+   turns out, it is not that useful. The current block files define a new
+   interpreter with its own number conversion routine without touching the
+   `BASE`.
  - 7 bytes: Remove the `-` word (with the expectation that the user will assemble their
    own primitives later anyway).
  - 6 bytes: Remove the `+` word (with the expectation that the user will define `: negate 0 swap - ; : + negate - ;`
