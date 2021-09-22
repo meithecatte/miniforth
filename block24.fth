@@ -11,6 +11,6 @@
 : .r ( n w -- ) over 0>= if u.r else >r negate
   0 <# #s [char] - hold #> r> type.r then ;
 : hex. ( u -- ) ." $" base @ swap hex u. base ! ;
-
-
-                                                             -->
+: depth.  ." <" depth 0 u.r ." > " ;
+: .s depth. depth begin dup while dup pick . 1- repeat drop ;
+: ?  @ dup . hex. ;                                          -->

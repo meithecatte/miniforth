@@ -5,8 +5,8 @@
   ax pop, dx pop, cx pop,
   ax push, bx push, cx push, dx bx movw-rr, next,
 :code 1- bx decw, next,
-
-
+: literal lit, ; immediate
+: cell- 2 - ;
 
 
 
