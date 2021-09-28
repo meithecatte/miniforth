@@ -44,6 +44,15 @@ the stack on boot:
    and `1` means interpreting.
  - `#DISK` is not a variable, but the saved disk number of the boot media
 
+## Trying it out
+
+When Miniforth boots, no prompt will be shown on the screen. However, if what
+you're typing is being shown on the screen, it is working. You can:
+
+ - do some arithmetic: `1 2 + u.`
+ - load the code I've developed on top of Miniforth: `1 load`
+   - browse that code: `7 21 index`, `7 1000 read-block`, `1000 list`
+
 ## Building a disk image
 
 If you have Nix installed, get the build dependencies with `nix-shell`.
@@ -79,14 +88,6 @@ if you do not want to include the blocks in your disk. QEMU will run in curses m
 with <kbd>Alt</kbd> + <kbd>2</kbd>, <kbd>q</kbd>, <kbd>Enter</kbd>.
 
 ## Getting started
-
-When Miniforth boots, no prompt will be shown on the screen. However, if what
-you're typing is being shown on the screen, it is working. You can try:
-
- - doing some arithmetic: `1 2 + u.`
- - loading the code I've developed on top of Miniforth: `1 load`, followed by,
-   for example, `7 19 index` on the next line (blocks 1-6 do not have a
-   description comment).
 
 ## Hardware considerations
 

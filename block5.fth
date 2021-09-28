@@ -23,5 +23,4 @@ next,
 10 constant #lines
 : show-line dup u. dup line-length type cr line-length + ;
 : list #lines begin >r show-line r> 1 - dup 0= until drop drop ; 
-: r@ r> r> dup >r swap >r ;
 -->

@@ -1,16 +1,16 @@
-( numeric output )
-: decimal #10 base ! ;          : hex #16 base ! ;
-: negate  0 swap - ;
-: . ( n -- ) dup 0< if [char] - emit negate then u. ;
-: ud. ( ud -- ) <# #s #> type space ;
-: d. ( d -- ) dup 0< if [char] - emit dnegate then ud. ;
-: spaces ( u -- ) begin dup while 1- space repeat drop ;
-: type.r ( str n -- ) 2dup < if over - spaces else drop then
-  type ;
-: u.r ( u w -- ) >r 0 <# #s #> r> type.r ;
-: .r ( n w -- ) over 0>= if u.r else >r negate
-  0 <# #s [char] - hold #> r> type.r then ;
-: hex. ( u -- ) ." $" base @ swap hex u. base ! ;
-: depth.  ." <" depth 0 u.r ." > " ;
-: .s depth. depth begin dup while dup pick . 1- repeat drop ;
-: ?  @ dup . hex. ;                                          -->
+( <# #> )
+create holdbuf $100 allot  here constant endhold
+variable holdptr
+: <# ( -- ) endhold holdptr ! ;
+: #> ( xd -- str ) 2drop  holdptr @ endhold over - ;
+exception end-exception hold-area-exhausted
+: hold ( c -- ) -1 holdptr +!  holdptr @
+  dup holdbuf <  ['] hold-area-exhausted and throw  c! ;
+: holds ( str -- ) begin dup while 1-  2dup + c@ hold  repeat ;
+: >digit ( u -- c ) dup 9 > if #10 - [char] A + else
+  [char] 0 + then ;
+: # ( ud -- ud ) base @ ud/mod 2>r >digit hold 2r> ;
+: d= ( xd xd -- t|f ) >r swap r> = >r = r> and ;
+: #s ( ud -- 0. ) begin # 2dup 0. d= until ;
+
+                                                             -->

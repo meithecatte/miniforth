@@ -1,12 +1,8 @@
-( does>  /  structures )
-: >exit ( nt -- @exit ) >body [ 3 2 cells + ] literal + ;
-: does, here 6 + si movw-ir, next, ;
-: (does>) r> latest @ >exit ! ;
-: does> postpone (does>) does, ; immediate
-
-: +field ( off sz -- off ) create over , + does> @ + ;
-: field:  1 cells +field ;      : cfield: 1 +field ;
-: 2field: 2 cells +field ;
+( halt during key )
+: hlt, F4 c, ;                  :code halt hlt, next,
+:code waitkey j< hlt, 1 ah movb-ir, 16 int, jz, <j next,
+:code key' bx push, ax ax xorw-rr, 16 int, ax bx movw-rr, next,
+:noname  waitkey key' ; is key
 
 
 
@@ -14,3 +10,7 @@
 
 
 
+
+
+
+                                                             -->

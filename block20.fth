@@ -1,16 +1,16 @@
-( interpret )
-: interpreting? ( -- t|f ) compiling? invert ;
-: do-nt ( nt -- ? ) dup >body swap immediate? interpreting? or
-  if execute else , then ;
-: compile-lit ( d -- ) is-dnum @ if postpone 2literal else
-  d>s lit, then ;
-: interpret-lit ( d -- ? ) is-dnum @ 0= if d>s then ;
-: do-lit  compiling? if compile-lit else interpret-lit then ;
-: do-token ( str -- ? ) 2dup find dup if nip nip do-nt else
-  drop 2dup word: 2! >number 0= ['] unknown-word and throw
-  do-lit then ;
-: interpret begin bl token dup while do-token repeat 2drop ;
-
-
-
-                                                             -->
+( block utilities )
+exception  uint block:  uint error:  end-exception i/o-error
+: movb-rr, 8A c, rm-r, ;        : movb-rm, 88 c, r-m, ;
+:code hibyte bh bl movb-rr, 0 bh movb-ir, next,
+:code lobyte 0 bh movb-ir, next,
+: err? ( u--) hibyte dup error: ! 0<> ['] i/o-error and throw ;
+: read-block ( u -- ) over block: ! read-block err? ;
+: write-block ( u -- ) over block: ! write-block err? ;
+: blk? ( blk# -- ) cr dup u. 600 read-block 600 40 type ;
+: index ( lo hi -- ) swap begin 2dup >= while
+  dup blk? 1+ repeat 2drop ;
+: copy-block ( from to--) swap 600 read-block 600 write-block ;
+: copy-disjoint ( lo hi to -- )
+  begin >r 2dup <= r> swap while
+    2 pick over copy-block
+  1+ 2>r 1+ 2r> repeat drop 2drop ;                          -->

@@ -6,7 +6,7 @@ variable sep
 dup c@ sep? invert while 1+ repeat
 dup +sep >in ! over - ;
 : token skip parse ;
-: char bl token drop c@ ;
+: char #bl token drop c@ ;
 : [char] char lit, ; immediate
 : 2drop drop drop ;
 : ( [char] ) parse 2drop ; immediate
@@ -28,7 +28,7 @@ variable srcpos
 : 2dup over over ;
 : fill-range >r over - r> fill ;
 : terminate 0 srcpos @ c! ;
-: blank-rest srcpos @ dup next-line dup srcpos ! bl fill-range ;
+: blank-rest srcpos @ dup next-line dup srcpos ! #bl fill-range ;
 : skip-space 1 >in +! ;
 : ln skip-space s+ blank-rest ;
 -->

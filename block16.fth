@@ -1,16 +1,16 @@
-( key accept )
-:code key  bx push, ax ax xorw-rr, 16 int, ax bx movw-rr, next,
-8 constant #bs   D constant #cr
-: printable? dup 20 >= swap 7E <= and ;
-: append ( str len c -- str len+1 ) >r 2dup + r> swap c! 1+ ;
-: unemit  #bs emit  space  #bs emit ;
-: accept ( buf max-len -- buf len ; stores max-len on rstack )
-  >r 0  begin ( buf cur-len )
-    key FF and ( TODO: how to handle extended keys )
-    dup printable? if
-      over r@ < if  dup emit append  else drop then
-    else case
-      #cr of  rdrop exit  endof
-      #bs of  dup 0<> if  1 -  unemit  then  endof
-    endcase then
-  again ;                                                    -->
+( case )
+: case 0 ; immediate
+: (of) ( a b -- skip: a | cont: )
+  over = if
+    drop r> cell+ >r
+  else
+    r> @ >r
+  then ;
+: of postpone (of) br> ; immediate
+: endof >r postpone (branch) br> r> >br ; immediate
+: endcase  postpone drop
+  begin dup while >br repeat drop ; immediate
+
+
+
+                                                             -->

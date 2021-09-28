@@ -1,16 +1,16 @@
-( <# #> )
-$100 constant holdsize
-create holdbuf holdsize allot
-here constant endhold
-variable holdptr
-: <# ( -- ) endhold holdptr ! ;
-: #> ( xd -- str ) 2drop  holdptr @ endhold over - ;
-exception end-exception hold-area-exhausted
-: hold ( c -- ) -1 holdptr +!  holdptr @
-  dup holdbuf <  ['] hold-area-exhausted and throw  c! ;
-: holds ( str -- ) begin dup while 1-  2dup + c@ hold  repeat ;
-: >digit ( u -- c ) dup 9 > if #10 - [char] A + else
-  [char] 0 + then ;
-: # ( ud -- ud ) base @ ud/mod 2>r >digit hold 2r> ;
-: d= ( xd xd -- t|f ) >r swap r> = >r = r> and ;
-: #s ( ud -- 0. ) begin # 2dup 0. d= until ;                 -->
+( division )
+: divw-r,  F7 c, 6 rm-r, ;
+:code (um/mod) dx pop, ax pop, bx divw-r,
+  dx push, ax bx movw-rr, next,
+exception end-exception division-by-zero
+exception end-exception division-overflow
+: um/mod ( ud u -- mod quot )
+  dup 0= ['] division-by-zero and throw
+  2dup >= ['] division-overflow and throw  (um/mod) ;
+: u/mod ( u u -- mod quot ) 0 swap um/mod ;
+: ud/mod ( ud u -- mod dquot )
+  tuck u/mod >r ( lo div hi R: hi-res )
+  swap um/mod r> ;
+
+
+                                                             -->

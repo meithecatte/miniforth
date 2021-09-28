@@ -16,14 +16,14 @@ std, rep, movsb, cld,
 ax si movw-rr, dx di movw-rr,
 bx pop, next,
 : cmove> dup >r 1 - dup >r + swap r> + swap r> (cmove>) ;
-: bl 20 ; : space bl emit ;
+: #bl 20 ; : space #bl emit ;
 :code 1+ bx incw, next,
 : count dup 1+ swap c@ ;
 1F constant lenmask
-: header-name cell+ count lenmask and ;
+: >name cell+ count lenmask and ;
 : visible? cell+ c@ 40 and 0= ;
 : words-in begin dup while
-dup visible? if dup header-name type space then
+dup visible? if dup >name type space then
 @ repeat drop ;
 : words latest @ words-in ;
 sp@ constant s0
