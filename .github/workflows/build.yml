@@ -1,0 +1,22 @@
+name: Build release
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: sudo apt install tup yasm
+      - run: tup
+      - run: python3 .github/workflows/name_release.py
+        id: name_release
+      - uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.name_release.outputs.release_name }}
+          name: "Snapshot ${{ steps.name_release.outputs.release_name }}"
+          files: miniforth.img

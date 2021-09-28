@@ -1,10 +1,11 @@
 from itertools import count
 import sys
 
-with open('boot.bin', 'rb') as f:
+with open('uefix.bin', 'rb') as f:
     output = bytearray(f.read())
 
-output += b'\x00' * 512
+with open('boot.bin', 'rb') as f:
+    output += bytearray(f.read())
 
 for i in count(1):
     try:
@@ -27,5 +28,5 @@ for i in count(1):
 
 print('Found', i - 1, 'block files')
 
-with open('disk.img', 'wb') as f:
+with open('miniforth.img', 'wb') as f:
     f.write(output)
