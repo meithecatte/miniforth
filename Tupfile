@@ -2,4 +2,4 @@
 : boot.s |> yasm -f bin boot.s -o raw.bin -l boot.lst |> raw.bin boot.lst
 : uefix.s |> yasm -f bin uefix.s -o uefix.bin |> uefix.bin
 : raw.bin |> python3 compress.py |> boot.bin
-: boot.bin |> python3 mkdisk.py |> miniforth.img
+: boot.bin uefix.bin |> python3 mkdisk.py |> miniforth.img
