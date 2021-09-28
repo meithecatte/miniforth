@@ -10,7 +10,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+        with:
+          fetch-depth: 0
       - run: sudo apt install tup yasm
       - run: tup
       - run: python3 .github/workflows/name_release.py
