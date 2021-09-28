@@ -1,5 +1,6 @@
 from datetime import datetime
 from string import ascii_lowercase as abc
+import os
 
 t = datetime.now()
 base = t.strftime('%gw%V')
