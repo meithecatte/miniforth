@@ -46,6 +46,9 @@ the stack on boot:
 
 ## Trying it out
 
+You can either build a disk image yourself (see below), or download one from
+[the releases page].
+
 When Miniforth boots, no prompt will be shown on the screen. However, if what
 you're typing is being shown on the screen, it is working. You can:
 
@@ -139,3 +142,4 @@ If a feature is strongly desirable, potential tradeoffs include:
 
 [FORTH]: https://en.wikipedia.org/wiki/Forth_(programming_language)
 [blog]: https://niedzejkob.p4.team/bootstrap/
+[the releases page]: https://github.com/NieDzejkob/miniforth/releases/
