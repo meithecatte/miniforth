@@ -13,5 +13,4 @@ create color 7 ,
 : attr! ( attr curpos -- ) dup hibyte #80 u* swap lobyte +
   2* 1+ vga! ;
 :noname ( c -- ) curpos@ over emit-tty swap printable? if
-  color @ swap attr! else drop then ; is emit
-                                                             -->
+  color @ swap attr! else drop then ; is emit                -->
