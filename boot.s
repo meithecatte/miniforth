@@ -89,7 +89,7 @@ start:
 .not_special:
     loop .decompress
 
-    mov [DRIVE_NUMBER], dl
+    mov [di + DRIVE_NUMBER - CompressedEnd], dl
     push dx ; for FORTH code
 
 ReadLine:
@@ -98,24 +98,20 @@ ReadLine:
 .loop:
     mov ah, 0
     int 0x16
-    cmp al, 0x0d
-    je short .enter
-    stosb
     cmp al, 0x08
     jne short .write
-    dec di
     cmp di, InputBuf ; underflow check
     je short .loop
     dec di
 .write:
     call PutChar
-    jmp short .loop
+    stosb
+    cmp al, 0x0d
+    jne short .loop
 .enter:
-    call PutChar
     mov al, 0x0a
     int 0x10
-    xchg ax, bx ; write the null terminator by using the BX = 0 from PutChar
-    stosb
+    mov [di-1], bl ; write the null terminator by using the BX = 0 from PutChar
 InterpreterLoop:
     call ParseWord
     jcxz short ReadLine
