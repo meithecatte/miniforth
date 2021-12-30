@@ -16,17 +16,17 @@ swap : dp 0 [ dup @ 2 - ! ] ;
 : latest [ lit, ] ;
 : [[ 1 st c! ;
 here 2 - @ : 'exit [ lit, ] ;
-: constant : [[ lit, 'exit , ;
-: create : [[ here 3 cells + lit, 'exit , ;
+: create: : [[ ;
+: create create: here 3 cells + lit, 'exit , ;
+: constant create: lit, 'exit , ;
 : variable create 1 cells allot ;
 create blk 1 ,
 : load' load ;
 : load dup blk ! load' ;
-:
---> blk @ 1 + load ;
+: --> blk @ 1 + load ;
 : ax 0 ; : cx 1 ; : dx 2 ; : bx 3 ; : sp 4 ; : bp 5 ; : si 6 ; : di 7 ;
 : al 0 ; : cl 1 ; : dl 2 ; : bl 3 ; : ah 4 ; : ch 5 ; : dh 6 ; : bh 7 ;
-: :code : [[ here 3 - dp ! ;
+: :code create: 0 3 - allot ;
 : stosb, aa c, ; : stosw, ab c, ; : lodsb, ac c, ; : lodsw, ad c, ;
 : 2* dup + ;
 : 3shl 2* 2* 2* ;

@@ -1,16 +1,16 @@
-( improve : to allow referring to previous definition )
-: link, ( list -- ) here swap  dup @ ,  ! ;
-: header, ( name len -- ) latest link, dup c, n, ;
-: rel@ ( a -- v ) dup @ + cell+ ;
-: rel! ( v a -- ) dup >r - 1 cells - r> ! ;
-: rel, ( v -- ) here rel! 1 cells allot ;
-latest @ >xt 1+ rel@ constant 'docol
-: call, E8 c, rel, ;
-: hide latest @ cell+ dup >r c@ 40 or r> c! ;
-: unhide latest @ cell+ dup >r c@ 40 invert and r> c! ;
-: ; [ hide ] postpone{ exit [ } unhide ; immediate unhide
-: : #bl token header, 'docol call, hide ] ;
-: recurse  latest @ >xt , ; immediate
-: :noname ( -- xt ) s" " header, here 'docol call, hide ] ;
-
+( structured exceptions )
+: exception ( -- dict-pos ) latest @ ;
+: print-uint @ u. ; : uint ['] print-uint , variable ;
+: print-str 2@ type ; : str ['] print-str , 2variable ;
+: print-name, ( nt -- ) >name postpone{ 2literal type } ;
+: print-field, ( nt -- )
+  dup print-name, postpone space
+  dup >xt ,
+  1 cells - @ ,
+  postpone cr ;
+: end-exception ( dict-pos -- ) latest @
+  :  latest @ print-name,  postpone cr
+  begin ( end-pos cur-pos ) 2dup <> while
+    dup print-field,  @
+  repeat  2drop  postpone ;  ;
                                                              -->

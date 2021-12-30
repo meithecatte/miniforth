@@ -31,4 +31,5 @@ variable srcpos
 : blank-rest srcpos @ dup next-line dup srcpos ! #bl fill-range ;
 : skip-space 1 >in +! ;
 : ln skip-space s+ blank-rest ;
+: clear #bl fill ;
 -->
