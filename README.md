@@ -112,12 +112,12 @@ Then, install `uefix.bin` in sector 0, and `boot.bin` in sector 1.
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **498** bytes are used,
-leaving 12 byte for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **503** bytes are used,
+leaving 7 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!
- - Peter Ferrie saved 6 bytes. Thanks!
+ - Peter Ferrie saved 1 byte. Thanks!
 
 If a feature is strongly desirable, potential tradeoffs include:
 

@@ -98,20 +98,24 @@ ReadLine:
 .loop:
     mov ah, 0
     int 0x16
+    cmp al, 0x0d
+    je short .enter
+    stosb
     cmp al, 0x08
     jne short .write
+    dec di
     cmp di, InputBuf ; underflow check
     je short .loop
     dec di
 .write:
     call PutChar
-    stosb
-    cmp al, 0x0d
-    jne short .loop
+    jmp short .loop
 .enter:
+    call PutChar
     mov al, 0x0a
     int 0x10
-    mov [di-1], bl ; write the null terminator by using the BX = 0 from PutChar
+    xchg ax, bx ; write the null terminator by using the BX = 0 from PutChar
+    stosb
 InterpreterLoop:
     call ParseWord
     jcxz short ReadLine
