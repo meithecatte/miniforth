@@ -103,9 +103,10 @@ ReadLine:
     cmp di, InputBuf ; underflow check
     je short .loop
     dec di
+    db 0x3c          ; mask next instruction
 .write:
-    call PutChar
     stosb
+    call PutChar
     cmp al, 0x0d
     jne short .loop
 .enter:
