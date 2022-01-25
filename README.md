@@ -112,12 +112,12 @@ Then, install `uefix.bin` in sector 0, and `boot.bin` in sector 1.
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **503** bytes are used,
-leaving 7 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **499** bytes are used,
+leaving 11 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!
- - Peter Ferrie saved 1 byte. Thanks!
+ - Peter Ferrie saved 5 bytes. Thanks!
 
 If a feature is strongly desirable, potential tradeoffs include:
 
@@ -126,9 +126,8 @@ If a feature is strongly desirable, potential tradeoffs include:
    the disadvantage that avoiding occurances of `SPECIAL_BYTE` becomes harder,
    and the solution of simply changing the special byte no longer works.
  - ?? bytes: Don't expose the `BASE` variable, hardcode hexadecimal — as it
-   turns out, it is not that useful. The current block files define a new
-   interpreter with its own number conversion routine without touching the
-   `BASE`.
+   turns out, it is not that useful. The current bootstrap doesn't make use of
+   `BASE` in the initial interpreter.
  - 7 bytes: Remove the `-` word (with the expectation that the user will assemble their
    own primitives later anyway).
  - 6 bytes: Remove the `+` word (with the expectation that the user will define `: negate 0 swap - ; : + negate - ;`
