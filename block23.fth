@@ -11,6 +11,6 @@ exception end-exception division-overflow
 : ud/mod ( ud u -- mod dquot )
   tuck u/mod >r ( lo div hi R: hi-res )
   swap um/mod r> ;
-
+: u/ ( u u -- quot ) u/mod nip ;
 
                                                              -->

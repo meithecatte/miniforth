@@ -1,4 +1,4 @@
-( does>  /  structures )
+( does> / structures / value )
 : >exit ( nt -- @exit ) >xt [ 3 2 cells + ] literal + ;
 : >body ( xt -- body ) [ 3 3 cells + ] literal + ;
 : does, here 6 + si movw-ir, next, ;
@@ -9,8 +9,8 @@
 : field:  1 cells +field ;      : cfield: 1 +field ;
 : 2field: 2 cells +field ;
 
-
-
-
+: value  create 0 , does> @ ;
+: to  ' >body  compiling? if postpone{ literal ! }
+  else ! then ; immediate
 
                                                              -->

@@ -10,4 +10,4 @@ Root definitions
 : order search-order stk.iter> ?do i @ vocab. space >next
   space current @ vocab. ;
 previous definitions
-
+                                                             -->

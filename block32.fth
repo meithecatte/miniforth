@@ -8,9 +8,9 @@
 
 create color 7 ,
 : fs> 64 c, ; :code fs! 8E c, bx 4 rm-r, bx pop, next,
-:code +fs!  ax pop, fs> al [bx] movb-rm, bx pop, next,
-: vga! B800 fs! +fs! ;
-: attr! ( attr curpos -- ) dup hibyte #80 u* swap lobyte +
-  2* 1+ vga! ;
-:noname ( c -- ) curpos@ over emit-tty swap printable? if
-  color @ swap attr! else drop then ; is emit                -->
+:code farc! ax pop, fs> al [bx] movb-rm, bx pop, next,
+:code farc@ fs> [bx] bl movb-mr, 0 bh movb-ir, next,
+: cur>scr dup hibyte #80 u* swap lobyte + 2* ;
+: vga! B800 fs! farc! ;         : attr! cur>scr 1+ vga! ;
+:noname ( c -- ) dup printable? if color @ curpos@ attr! then
+  emit-tty ; is emit                                         -->

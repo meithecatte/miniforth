@@ -1,6 +1,6 @@
 ( key accept )
 :code key  bx push, ax ax xorw-rr, 16 int, ax bx movw-rr, next,
-8 constant #bs   D constant #cr
+8 constant #bs   D constant #cr   A constant #lf
 : printable? dup 20 >= swap 7E <= and ;
 : append ( str len c -- str len+1 ) >r 2dup + r> swap c! 1+ ;
 : unemit  #bs emit  space  #bs emit ;
