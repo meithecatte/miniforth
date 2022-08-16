@@ -141,5 +141,5 @@ If a feature is strongly desirable, potential tradeoffs include:
    to borrow some code from `:`. However, reboots would become somewhat bothersome.
 
 [FORTH]: https://en.wikipedia.org/wiki/Forth_(programming_language)
-[blog]: https://niedzejkob.p4.team/bootstrap/
-[the releases page]: https://github.com/NieDzejkob/miniforth/releases/
+[blog]: https://compilercrim.es/bootstrap/
+[the releases page]: https://github.com/meithecatte/miniforth/releases/
