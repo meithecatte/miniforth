@@ -3,7 +3,8 @@
   ; immediate
 : refill-kbd 0 500 dup >in ! 100 accept + c!  space ;
 : refill ;
-: prompt compiling? if ."  compiled" else ."  ok" then cr ;
+: prompt cr space depth u. compiling? if ."  compiled" else
+  ."  ok" then ." > " ;
 : repl begin refill interpret prompt again ;
 :noname 1 st c! ; is [          :noname 0 st c! ; is ]
 rp@ constant r0
@@ -12,5 +13,4 @@ rp@ constant r0
 :noname ; is skip-space
 : list cr list ;
 quit            ' refill-kbd is refill
-
                                                              -->
