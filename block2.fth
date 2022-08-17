@@ -16,7 +16,7 @@ variable pos
 : pos, pos @ ! 2 pos +! ;
 : make-packet packet pos ! 10 pos, 2 pos, pos, 0 pos, 2* pos, 0 pos, 0 pos, 0 pos, ;
 : read-block make-packet 4200 int13 ;
-: write-block make-packet 4302 int13 ;
+: write-block make-packet 4300 int13 ;
 : cr 0D emit 0A emit ;
 : incw, 40 + c, ;
 : decw, 48 + c, ;
