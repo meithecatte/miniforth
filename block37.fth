@@ -1,16 +1,16 @@
-( editor: buffer mgmt )
-vocabulary Editor    Editor definitions
-$C00 constant buf               buf $400 + constant buf-end
-variable row    variable col
-: >buf ( r c -- addr ) buf + swap line-length u* + ;
-: cur>buf ( -- addr ) row @ col @ >buf ;
-: >row ( addr -- u ) line-length u/ $f and ;
-: >col ( addr -- u ) $3f and ;
-: buf>cur ( addr -- ) dup >row row !  >col col ! ;
+( random words not defined earlier )
+: max ( a b -- m ) 2dup < if nip else drop then ;
+: min ( a b -- m ) 2dup > if nip else drop then ;
+: shlw-cl,  D3 c, 4 rm-r, ;
+:code lshift  bx cx movw-rr, bx pop, bx shlw-cl, next,
+: ud> ( da db -- da>db ) >r swap r> 2dup <> if 2swap then 2drop
+  u> ;
 
-variable dirty  dirty off       value curblk
-: (save) curblk buf write-block  dirty off ;
-: save ( -- ) dirty @ if (save) then ;
-: blk! ( blk -- ) save  to curblk ;
-: read ( blk -- ) dup blk!  buf read-block ;
-: mark ( -- ) dirty on ;                                     -->
+
+
+
+
+
+
+
+
