@@ -1,16 +1,16 @@
-( <# #> )
-create holdbuf $100 allot  here constant endhold
-variable holdptr
-: <# ( -- ) endhold holdptr ! ;
-: #> ( xd -- str ) 2drop  holdptr @ endhold over - ;
-exception end-exception hold-area-exhausted
-: hold ( c -- ) -1 holdptr +!  holdptr @
-  dup holdbuf <  ['] hold-area-exhausted and throw  c! ;
-: holds ( str -- ) begin dup while 1-  2dup + c@ hold  repeat ;
-: >digit ( u -- c ) dup 9 > if #10 - [char] A + else
-  [char] 0 + then ;
-: # ( ud -- ud ) base @ ud/mod 2>r >digit hold 2r> ;
-: d= ( xd xd -- t|f ) >r swap r> = >r = r> and ;
-: #s ( ud -- 0. ) begin # 2dup 0. d= until ;
+( search-order support for find )
+:noname ( name len -- nt|0 ) search-order stk.iter< do
+  2dup i @ search-in  dup if >r 2drop r> unloop exit then
+  drop <next 2drop 0 ; is find
+: vocabulary (vocabulary) [ ' Root >body ] literal move-to ;
+: vocab. cell+ @ >name type ;
+Root definitions
+: previous search-order pop drop  search-order stk.depth 0= if
+  Root then ;
+: order search-order stk.iter> ?do i @ vocab. space >next
+  space current @ vocab. ;
+previous definitions
+
+
 
                                                              -->

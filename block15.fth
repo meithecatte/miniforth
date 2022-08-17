@@ -1,16 +1,16 @@
-( defer )
-exception  str defer-vector:  end-exception unset-defer
-: bad-defer ( nt -- ) >name defer-vector: 2!
-  ['] unset-defer throw ;
-: defer  : latest @ postpone{ literal bad-defer ; } ;
-E9 constant jmp16
-: defer! ( target-xt defer-xt ) jmp16 over c! 1+ rel! ;
-: defer@ ( xt -- xt' ) dup c@ jmp16 = if 1+ rel@ then ;
-: is ( xt -- ) compiling? if postpone{ ['] defer! }
-  else ' defer! then ; immediate
-exception  str word:  end-exception unknown-word
-:noname 2dup word: 2! find
-  dup 0= ['] unknown-word and throw ; is must-find
-:noname #bl token header, 'docol call, ; is create:
-:noname create: hide ] ; is :
-:noname postpone{ exit [ } unhide ; is ;                     -->
+( interpret )
+: interpreting? ( -- t|f ) compiling? invert ;
+: do-nt ( nt -- ? ) dup >xt swap immediate? interpreting? or
+  if execute else , then ;
+: compile-lit ( d -- ) is-dnum @ if postpone 2literal else
+  d>s lit, then ;
+: interpret-lit ( d -- ? ) is-dnum @ 0= if d>s then ;
+: do-lit  compiling? if compile-lit else interpret-lit then ;
+: do-token ( str -- ? ) 2dup find dup if nip nip do-nt else
+  drop 2dup word: 2! >number 0= ['] unknown-word and throw
+  do-lit then ;
+: interpret begin #bl token dup while do-token repeat 2drop ;
+
+
+
+                                                             -->

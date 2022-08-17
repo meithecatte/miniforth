@@ -49,7 +49,7 @@ if __name__ == "__main__":
         img_file.read(1024)
         for i in range(1, count + 1):
             #print('Processing block', i)
-            filename = 'block%d.fth' % i
+            filename = 'block%02x.fth' % i
             block = img_file.read(1024)
             if b'\x00' in block:
                 block = block[:block.index(b'\x00')]

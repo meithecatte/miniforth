@@ -9,7 +9,7 @@ with open('boot.bin', 'rb') as f:
 
 for i in count(1):
     try:
-        with open('block%d.fth' % i, 'rb') as f:
+        with open('block%02x.fth' % i, 'rb') as f:
             block = f.read()
     except FileNotFoundError:
         break

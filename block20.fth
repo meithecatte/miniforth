@@ -1,16 +1,16 @@
-( block utilities )
-exception  uint block:  uint error:  end-exception i/o-error
-: movb-rr, 8A c, rm-r, ;        : movb-rm, 88 c, r-m, ;
-:code hibyte bh bl movb-rr, 0 bh movb-ir, next,
-:code lobyte 0 bh movb-ir, next,    : movb-mr, 8A c, m-r, ;
-: err? ( u--) hibyte dup error: ! 0<> ['] i/o-error and throw ;
-: read-block ( n addr -- ) over block: ! read-block err? ;
-: write-block ( n addr -- ) over block: ! write-block err? ;
-: blk? ( blk# -- ) cr dup u. 600 read-block 600 40 type ;
-: index ( lo hi -- ) swap begin 2dup >= while
-  dup blk? 1+ repeat 2drop ;
-: copy-block ( from to--) swap 600 read-block 600 write-block ;
-: copy-disjoint ( [lo; hi] [to -- )
-  begin >r 2dup <= r> swap while
-    2 pick over copy-block
-  1+ 2>r 1+ 2r> repeat drop 2drop ;                          -->
+( colored output )
+:code emit-tty bx ax movw-rr, 0E ah movb-ir, bx bx xorw-rr,
+  10 int, bx pop, next,
+:code curpos@ bx push, bx bx xorw-rr, 3 ah movb-ir, 10 int,
+  dx bx movw-rr, next,
+:code curpos! bx dx movw-rr, 2 ah movb-ir, bx bx xorw-rr,
+  10 int, bx pop, next,
+
+create color 7 ,
+: fs> 64 c, ; :code fs! 8E c, bx 4 rm-r, bx pop, next,
+:code farc! ax pop, fs> al [bx] movb-rm, bx pop, next,
+:code farc@ fs> [bx] bl movb-mr, 0 bh movb-ir, next,
+: cur>scr dup hibyte #80 u* swap lobyte + 2* ;
+: vga! B800 fs! farc! ;         : attr! cur>scr 1+ vga! ;
+:noname ( c -- ) dup printable? if color @ curpos@ attr! then
+  emit-tty ; is emit                                         -->

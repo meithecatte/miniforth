@@ -1,16 +1,16 @@
-( counted loops )
-variable leaves                 0 rpick: i   2 rpick: j
-: subw-sr, 83 c, 5 rm-r, c, ;   : unloop, 2 cells di subw-sr, ;
-:code unloop unloop, next,      :code 2rdrop unloop, next,
-: leave postpone (branch) leaves link, ; immediate
-: >leave leaves @ begin dup while dup @ swap >br repeat drop ;
-: begin-loop leaves @ 0 leaves ! ;
-: end-loop <br >leave   leaves !  postpone unloop ;
-: do begin-loop postpone 2>r br< ; immediate
-: ?do begin-loop postpone{ 2dup 2>r <> (0branch) } leaves link,
-  br< ; immediate
-
-
-
-
+( editor: rendering - cont. )
+defer modeline
+: modeline-normal ." Editing block $" curblk .
+  dirty @ if ."  (dirty)" then ;
+' modeline-normal is modeline
+: (curpos)  row @ $100 u* col @ 3 + + curpos! ;
+: (render) buf  #lines 0 ?do show-line loop  drop ;
+variable need-redraw
+( split rendering into the part before and after the modeline
+  -- allows displaying a message by: status ." ..." )
+: status ( -- ) clrscr (render) white  need-redraw off ;
+: ,s ( -- ) status .s ;
+: render ( --) need-redraw @ if status modeline then (curpos) ;
                                                              -->
+
+
