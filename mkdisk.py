@@ -1,6 +1,12 @@
 from itertools import count
 import sys
 
+FILE_MAP = [
+    (0x01, 'bootstrap.fth'),
+    (0x30, 'editor.fth'),
+    (0x50, 'filesystem.fth'),
+]
+
 # Most blocks (which we'll call *formatted*) are stored in the repository
 # as 16 lines of length 64 or less, and we can preserve that formatting within
 # the disk.
@@ -20,6 +26,7 @@ def format_block(bnum, block):
         block = block.strip().replace(b'\n', b' ')
     if len(block) > 1024:
         print('Block', bnum, 'is too large - ', len(block), 'bytes')
+        print(block[:64])
         sys.exit(1)
     block += b' ' * (1024 - len(block))
     return block
@@ -51,8 +58,8 @@ if __name__ == "__main__":
     blocks = {}
     blocks[0] = uefix + boot
 
-    blocks_at(0x01, 'bootstrap.fth')
-    blocks_at(0x30, 'editor.fth')
+    for bnum, fname in FILE_MAP:
+        blocks_at(bnum, fname)
 
     num_blocks = max(blocks.keys()) + 1
 

@@ -7,7 +7,7 @@
 
 from difflib import SequenceMatcher
 from itertools import zip_longest, count
-from mkdisk import read_block
+from mkdisk import read_block, FILE_MAP
 import re
 import sys
 
@@ -74,5 +74,5 @@ if __name__ == "__main__":
     _, img = sys.argv
 
     with open(img, 'rb') as img_file:
-        blocks_as_file(0x01, 'bootstrap.fth')
-        blocks_as_file(0x30, 'editor.fth')
+        for bnum, fname in FILE_MAP:
+            blocks_as_file(bnum, fname)

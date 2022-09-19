@@ -15,8 +15,6 @@ variable dirty  dirty off       value curblk
 : read ( blk -- ) dup blk!  buf read-block ;
 : mark ( -- ) dirty on ;                                     -->
 ( editor: rendering )
-#25 #80 u* 2* constant #vga
-: clrscr #vga 0 ?do #bl i vga! 7 i 1+ vga! 2 +loop 0 curpos! ;
 : mojibake 4 curpos@ attr!  $A8 emit ; ( $A8 printable? -> 0 )
 create column-colors  line-length allot
 column-colors line-length 7 fill
@@ -30,6 +28,8 @@ $47 $3f colclr!
 : (show-line) line-length 0 ?do dup show-char 1+ loop ;
 : show-line ( addr -- addr ) dup .lineno (show-line) cr ;
                                                              -->
+
+
 ( editor: rendering - cont. )
 defer modeline
 : modeline-normal ." Editing block $" curblk .
@@ -47,7 +47,6 @@ variable need-redraw
 
 
 ( editor: keymaps )
-: callot here over allot swap 0 fill ;
 value keypress
 : unbound status ." Unbound key " keypress dup u. emit ;
 : keymap create ['] unbound , $100 cells callot does>
@@ -62,6 +61,7 @@ defer current-keymap            keymap normal
   dup if status red execute else drop then ;
 : edit-loop normal-mode need-redraw on  begin render
   need-redraw on  handle-key  again ;                        -->
+
 ( editor: basic movement )
 : quit-editor status quit ; >> char Q bind normal
 : move-left  col @ 1- 0   max col ! ; >> char h bind normal
@@ -90,7 +90,7 @@ exception end-exception won't-fit-in-buffer
 : insert-char  cur>buf insert-at  move-right ;
 keymap insert  :noname  keypress lobyte printable? if
   keypress insert-char else unbound then ; to insert
-$1B constant #esc  ' normal-mode #esc bind insert
+' normal-mode #esc bind insert
 :noname ." -- INSERT --" ; : insert-mode literal is modeline
   ['] insert is current-keymap ;
 ' insert-mode  char i bind normal                            -->
@@ -115,7 +115,7 @@ Forth definitions
 : ed edit-loop ;
 : edit read ed ;
 : save save ;
-: run  save curblk load ;
+: run  save  no--> on  curblk load ;
 : bnew status ." Erase this block? (y/n)" key lobyte
   [char] y = if buf 400 clear mark move-top then ed ;
 previous definitions

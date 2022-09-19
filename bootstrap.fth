@@ -231,7 +231,7 @@ variable srcpos
   bx push, [di] bx movw+mr, next, ;
 0 rpick: r@     1 rpick: rover  2 rpick: 2rpick              -->
 ( double-cell values, stored little endian - ANS be damned )
-: s>d dup 0< ;  : d>s drop ;
+: s>d dup 0< ;  : d>s drop ;    : d0<> or 0<> ;
 : 2@ dup @ swap cell+ @ ;       : 2! swap over cell+ ! ! ;
 : 2literal swap lit, lit, ; immediate
 : 2variable create 2 cells allot ;
@@ -245,7 +245,7 @@ variable srcpos
 :code d+  ax pop, dx pop, cx pop,
   cx ax addw-rr,  dx bx adcw-rr,  ax push, next,
 : ud*u ( ud u -- ud ) tuck u* >r um* r> + ;
-: dnegate invert swap invert swap 1 0 d+ ;                   -->
+: dnegate invert swap invert swap 1 0 d+ ; : d- dnegate d+ ; -->
 ( strings )
 : exit 'exit , ; immediate      : compiling? st c@ 0= ;
 : mem= ( a1 a2 len -- t|f ) begin dup while >r
@@ -294,6 +294,22 @@ variable srcpos
 
 
                                                              -->
+( :noname recurse )
+: link, ( list -- ) here swap  dup @ ,  ! ;
+: header, ( name len -- ) latest link, dup c, n, ;
+: rel@ ( a -- v ) dup @ + cell+ ;
+: rel! ( v a -- ) dup >r - 1 cells - r> ! ;
+: rel, ( v -- ) here rel! 1 cells allot ;
+latest @ >xt 1+ rel@ constant 'docol
+: call, E8 c, rel, ;
+: hide latest @ cell+ dup >r c@ 40 or r> c! ;
+: unhide latest @ cell+ dup >r c@ 40 invert and r> c! ;
+: :noname ( -- xt ) s" " header, here 'docol call, hide ] ;
+: recurse  latest @ >xt , ; immediate                        -->
+
+
+
+
 ( exception handling )
 
 :code sp! bx sp movw-rr, bx pop, next,
@@ -314,34 +330,18 @@ else drop then ;                                             -->
 : exception ( -- dict-pos ) latest @ ;
 : print-uint @ u. ; : uint ['] print-uint , variable ;
 : print-str 2@ type ; : str ['] print-str , 2variable ;
+: var #bl token 2dup must-find  dup 1 cells - @ ,
+  >r header, 'docol call, r>  >xt , postpone ; ;
 : print-name, ( nt -- ) >name postpone{ 2literal type } ;
-: print-field, ( nt -- )
-  dup print-name, postpone space
-  dup >xt ,
-  1 cells - @ ,
-  postpone cr ;
+: print-field, ( nt -- ) dup print-name,  postpone space
+  dup >xt ,  1 cells - @ ,  postpone cr ;
 : end-exception ( dict-pos -- ) latest @
   :  latest @ print-name,  postpone cr
   begin ( end-pos cur-pos ) 2dup <> while
     dup print-field,  @
   repeat  2drop  postpone ;  ;
                                                              -->
-( :noname recurse )
-: link, ( list -- ) here swap  dup @ ,  ! ;
-: header, ( name len -- ) latest link, dup c, n, ;
-: rel@ ( a -- v ) dup @ + cell+ ;
-: rel! ( v a -- ) dup >r - 1 cells - r> ! ;
-: rel, ( v -- ) here rel! 1 cells allot ;
-latest @ >xt 1+ rel@ constant 'docol
-: call, E8 c, rel, ;
-: hide latest @ cell+ dup >r c@ 40 or r> c! ;
-: unhide latest @ cell+ dup >r c@ 40 invert and r> c! ;
-: :noname ( -- xt ) s" " header, here 'docol call, hide ] ;
-: recurse  latest @ >xt , ; immediate
 
-
-
-                                                             -->
 ( defer )
 exception  str defer-vector:  end-exception unset-defer
 : bad-defer ( nt -- ) >name defer-vector: 2!
@@ -409,19 +409,19 @@ exception  str word:  end-exception unknown-word
 ( >number, continued )
 : sc@ ( str len -- str len c|0 ) dup if over c@ else 0 then ;
 : ?dup ( x -- x x | 0 ) dup if dup then ;
-: >number ( str -- d t | f ) is-dnum off  base @ >r
+create all-dnums false ,
+: >number ( str -- d t | f ) all-dnums @ is-dnum !  base @ >r
   sc@ basechar ?dup if  base !  1 /string  then
   sc@ [char] - = dup >r if  1 /string  then
   dup 0= if rdrop 2drop false else
     >digits  r> if dnegate then
     2swap nip 0<> if 2drop false else true then
-  then r> base ! ;
+  then r> base ! ;                                           -->
 
 
 
 
 
-                                                             -->
 ( block utilities )
 exception  uint block:  uint error:  end-exception i/o-error
 : movb-rr, 8A c, rm-r, ;        : movb-rm, 88 c, r-m, ;
@@ -457,19 +457,19 @@ exception  uint block:  uint error:  end-exception i/o-error
 ( quit )
 : ."  postpone s"  compiling? if postpone type else type then
   ; immediate
-: refill-kbd 0 500 dup >in ! 100 accept + c!  space ;
-: refill ;
+create no-->  false ,   : --> no--> @ invert if --> then ;
+: refill-kbd no--> off 0 500 dup >in ! 100 accept + c!  space ;
+: refill ( don't stop processing this block at "quit" below ) ;
 : prompt compiling? if ."  compiled" else ."  ok" then cr ;
 : repl begin refill interpret prompt again ;
 :noname 1 st c! ; is [          :noname 0 st c! ; is ]
 rp@ constant r0
-: quit begin postpone [  r0 rp!
+: quit begin postpone [  r0 rp!  10 base !
   ['] repl catch  cr execute again ;
 :noname ; is skip-space
 : list cr list ;
-quit            ' refill-kbd is refill
+quit            ' refill-kbd is refill                       -->
 
-                                                             -->
 ( division )
 : divw-r,  F7 c, 6 rm-r, ;
 :code (um/mod) dx pop, ax pop, bx divw-r,
@@ -484,13 +484,14 @@ exception end-exception division-overflow
   tuck u/mod >r ( lo div hi R: hi-res )
   swap um/mod r> ;
 : u/ ( u u -- quot ) u/mod nip ;
-
+: umod ( u u -- mod ) u/mod drop ;
                                                              -->
 ( <# #> )
 create holdbuf $100 allot  here constant endhold
 variable holdptr
 : <# ( -- ) endhold holdptr ! ;
-: #> ( xd -- str ) 2drop  holdptr @ endhold over - ;
+: nhold ( -- u ) endhold  holdptr @ - ;
+: #> ( xd -- str ) 2drop  holdptr @ nhold ;
 exception end-exception hold-area-exhausted
 : hold ( c -- ) -1 holdptr +!  holdptr @
   dup holdbuf <  ['] hold-area-exhausted and throw  c! ;
@@ -499,9 +500,8 @@ exception end-exception hold-area-exhausted
   [char] 0 + then ;
 : # ( ud -- ud ) base @ ud/mod 2>r >digit hold 2r> ;
 : d= ( xd xd -- t|f ) >r swap r> = >r = r> and ;
-: #s ( ud -- 0. ) begin # 2dup 0. d= until ;
+: #s ( ud -- 0. ) begin # 2dup 0. d= until ;                 -->
 
-                                                             -->
 ( numeric output )
 : decimal #10 base ! ;          : hex #16 base ! ;
 : ud. ( ud -- ) <# #s #> type space ;
@@ -680,7 +680,7 @@ latest @ ' Forth >body !  definitions
                                                              -->
 ( search-order support for find )
 :noname ( name len -- nt|0 ) search-order stk.iter< do
-  2dup i @ search-in  dup if >r 2drop r> unloop exit then
+  2dup i @ @ search-in  dup if >r 2drop r> unloop exit then
   drop <next 2drop 0 ; is find
 : vocabulary (vocabulary) [ ' Root >body ] literal move-to ;
 : vocab. cell+ @ >name type ;
@@ -689,18 +689,34 @@ Root definitions
   Root then ;
 : order search-order stk.iter> ?do i @ vocab. space >next
   space current @ vocab. ;
-previous definitions
+: only begin search-order stk.depth 1 > while previous repeat ;
+: words  search-order peek @ words-in ;
 
+previous definitions                                         -->
 
-
-                                                             -->
 ( random words not defined earlier )
+: callot ( u -- ) here over allot swap 0 fill ;
 : max ( a b -- m ) 2dup < if nip else drop then ;
 : min ( a b -- m ) 2dup > if nip else drop then ;
+: umax ( a b -- m ) 2dup u< if nip else drop then ;
+: umin ( a b -- m ) 2dup u> if nip else drop then ;
 : shlw-cl,  D3 c, 4 rm-r, ;
 :code lshift  bx cx movw-rr, bx pop, bx shlw-cl, next,
 : ud> ( da db -- da>db ) >r swap r> 2dup <> if 2swap then 2drop
   u> ;
+: ud<   2swap ud> ;
+: ud>=  ud< invert ;
+#25 #80 u* 2* constant #vga
+: clrscr #vga 0 ?do #bl i vga! 7 i 1+ vga! 2 +loop 0 curpos! ;
+$1B constant #esc
+: 2over ( a. b. -- a. b. a. ) 2>r 2dup 2r> 2swap ;           -->
+( far cmove )
+: push-es, 06 c, ;              : pop-es, 07 c, ;
+: push-fs, 0F c, A0 c, ;        : pop-fs, 0F c, A1 c, ;
+:code fs-cmove bx cx movw-rr,   si ax movw-rr, di dx movw-rr,
+  di pop, si pop,    push-es,  push-fs, pop-es,
+  fs> rep, movsb,    pop-es, ax si movw-rr, dx di movw-rr,
+  bx pop,  next,
 
 
 
