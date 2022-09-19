@@ -12,8 +12,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - run: sudo apt install tup yasm
-      - run: tup
+      - run: sudo apt install yasm
+      - run: ./build.sh
       - run: python3 .github/workflows/name_release.py
         id: name_release
       - uses: softprops/action-gh-release@v1

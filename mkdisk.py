@@ -1,32 +1,65 @@
 from itertools import count
 import sys
 
-with open('uefix.bin', 'rb') as f:
-    output = bytearray(f.read())
+# Most blocks (which we'll call *formatted*) are stored in the repository
+# as 16 lines of length 64 or less, and we can preserve that formatting within
+# the disk.
 
-with open('boot.bin', 'rb') as f:
-    output += bytearray(f.read())
+# However, early blocks were written as one long line, and then split
+# at each definition within the repository. This kind of formatting won't fit within
+# the 16 line split, so we don't preserve it.
 
-for i in count(1):
-    try:
-        with open('block%02x.fth' % i, 'rb') as f:
-            block = f.read()
-    except FileNotFoundError:
-        break
+def is_formatted(lines):
+    return len(lines) <= 16 and all(len(line) <= 64 for line in lines)
 
-    lines = block.rstrip(b'\n').split(b'\n')
-    if len(lines) <= 16 and all(len(line) <= 64 for line in lines):
+def format_block(bnum, block):
+    lines = block.strip(b'\n').split(b'\n')
+    if is_formatted(lines):
         block = b''.join(line.ljust(64) for line in lines)
     else:
         block = block.strip().replace(b'\n', b' ')
     if len(block) > 1024:
-        print('Block', i, 'is', len(block), 'bytes')
+        print('Block', bnum, 'is too large - ', len(block), 'bytes')
         sys.exit(1)
     block += b' ' * (1024 - len(block))
+    return block
 
-    output += block
+def read_block(f):
+    block = b''
+    for line in f:
+        block += line
+        if line.strip().endswith(b'-->'):
+            break
+    return block
 
-print('Found', i - 1, 'block files')
+def blocks_at(begin, fname):
+    with open(fname, 'rb') as f:
+        for bnum in count(begin):
+            block = read_block(f)
+            if not block:
+                break
+            assert bnum not in blocks
+            blocks[bnum] = format_block(bnum, block)
 
-with open('miniforth.img', 'wb') as f:
-    f.write(output)
+if __name__ == "__main__":
+    with open('uefix.bin', 'rb') as f:
+        uefix = f.read()
+
+    with open('boot.bin', 'rb') as f:
+        boot = f.read()
+
+    blocks = {}
+    blocks[0] = uefix + boot
+
+    blocks_at(0x01, 'bootstrap.fth')
+    blocks_at(0x30, 'editor.fth')
+
+    num_blocks = max(blocks.keys()) + 1
+
+    output = bytearray(1024 * num_blocks)
+    for bnum, block in blocks.items():
+        offset = 1024 * bnum
+        output[offset:offset+1024] = block
+
+    with open('miniforth.img', 'wb') as f:
+        f.write(output)

@@ -1,13 +1,13 @@
 # Extract the block contents from a disk image.
-# Usage: python3 splitdisk.py <disk image> <block count>
-# For example, python3 splitdisk.py disk.img 3 will create
-# block1.fth, block2.fth, and block3.fth
+# Usage: python3 splitdisk.py <disk image>
 # Some newlines are added, heuristically. They will get turned back into
 # spaces by mkdisk.py anyway. The position of the newlines of the block
-# files in the repository has been adjusted manually.
+# files in the repository has been adjusted manually, and this script attempts
+# to preserve this formatting as best as it can in the face of modifications.
 
 from difflib import SequenceMatcher
-from itertools import zip_longest
+from itertools import zip_longest, count
+from mkdisk import read_block
 import re
 import sys
 
@@ -41,27 +41,38 @@ def do_split(content, old):
     output += b'\n'
     return output
 
+def blocks_as_file(start, fname):
+    img_file.seek(start * 1024)
+    new_content = b''
+    try:
+        f = open(fname, 'rb')
+    except FileNotFoundError:
+        f = None
+
+    for i in count(start):
+        block = img_file.read(1024)
+        if b'\x00' in block:
+            block = block[:block.index(b'\x00')]
+        if not block.strip():
+            break
+        if i <= 6: # HACK: later blocks are formatted properly already
+            if f is not None:
+                old_content = read_block(f)
+            else:
+                old_content = b''
+            block = do_split(block, old_content)
+        else:
+            block = into_lines(block)
+        new_content += block
+
+    if f is not None:
+        f.close()
+    with open(fname, 'wb') as f:
+        f.write(new_content)
+
 if __name__ == "__main__":
-    _, img, count = sys.argv
-    count = int(count)
+    _, img = sys.argv
 
     with open(img, 'rb') as img_file:
-        img_file.read(1024)
-        for i in range(1, count + 1):
-            #print('Processing block', i)
-            filename = 'block%02x.fth' % i
-            block = img_file.read(1024)
-            if b'\x00' in block:
-                block = block[:block.index(b'\x00')]
-            if i <= 6: # HACK: later blocks are formatted properly already
-                old_content = b''
-                try:
-                    with open(filename, 'rb') as f:
-                        old_content = f.read().strip()
-                except FileNotFoundError:
-                    pass
-                block = do_split(block, old_content)
-            else:
-                block = into_lines(block)
-            with open(filename, 'wb') as f:
-                f.write(block)
+        blocks_as_file(0x01, 'bootstrap.fth')
+        blocks_as_file(0x30, 'editor.fth')

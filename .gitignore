@@ -1,0 +1,4 @@
+*.bin
+*.lst
+*.img
+__pycache__/
