@@ -153,12 +153,13 @@ Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **499** bytes are used,
-leaving 11 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **497** bytes are used,
+leaving 13 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!
  - Peter Ferrie saved 5 bytes. Thanks!
+ - [An article][daa] by Sean Conner allowed me to save 2 bytes. Thanks!
 
 If a feature is strongly desirable, potential tradeoffs include:
 
@@ -186,3 +187,4 @@ If a feature is strongly desirable, potential tradeoffs include:
 [branch-blog]: https://compilercrim.es/bootstrap/branches/
 [exception-blog]: https://compilercrim.es/bootstrap/exception-context/
 [the releases page]: https://github.com/meithecatte/miniforth/releases/
+[daa]: https://boston.conman.org/2023/02/24.1
