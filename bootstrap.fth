@@ -199,19 +199,9 @@ rep, stosb,
 dx di movw-rr,
 bx pop,
 next,
-variable checkpoint
-variable srcpos
-: s+ srcpos @ s: dup u. srcpos ! ;
-: move-checkpoint srcpos @ checkpoint ! ;
-: doit checkpoint @ run move-checkpoint ;
-: appending seek dup u. srcpos ! move-checkpoint ;
 : next-line 3f or 1+ ;
 : 2dup over over ;
-: fill-range >r over - r> fill ;
-: terminate 0 srcpos @ c! ;
-: blank-rest srcpos @ dup next-line dup srcpos ! #bl fill-range ;
 : skip-space 1 >in +! ;
-: ln skip-space s+ blank-rest ;
 : clear #bl fill ;
 -->
 ( stack manipulation )
