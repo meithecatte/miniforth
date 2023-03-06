@@ -31,12 +31,12 @@ $2000 constant buffer    $4000 #512 u/ constant bufsize
 : install-to ( sectors disk -- ) to target copy-mbr
   1- 1 swap copy-rest ;                                      -->
 ( partition table and chainloading )
-: load-ptable 0 $1e00 read-block ;
-: ptable $1e00 #446 + ;
+: load-ptable 0 $1c00 read-block ;
+: ptable $1c00 #446 + ;
 : part ( u -- ptr ) $10 u* ptable + ;
 : part-start ( n -- dLBA ) part 8 + 2@ ;
 : part-size  ( n -- d )    part c + 2@ ;
-: ret, $C3 c, ;
+: ret, $C3 c, ;      $2000 constant buffer
 : chainload ( n -- ) >r load-ptable
   disk# r> part-start 1 buffer dread
   buffer $1FE + @ $AA55 = if
