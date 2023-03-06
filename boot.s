@@ -92,6 +92,12 @@ start:
     mov [di + DRIVE_NUMBER - CompressedEnd], dl
     push dx ; for FORTH code
 
+%ifdef AUTOLOAD
+    push 1
+    mov ax, LOAD
+    jmp InterpreterLoop.execute
+%endif
+
 ReadLine:
     mov di, InputBuf
     mov [InputPtr], di
@@ -166,6 +172,7 @@ STATE equ $+1
     jz short .compile
 
     ; Execute the word
+.execute:
 RetSP equ $+1
     mov di, RS0
     pop bx
