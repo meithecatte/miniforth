@@ -160,9 +160,9 @@ $5000 constant fsbuf
 
 ( filesystem -- fopen fcreate )
 exception  str filename:  end-exception fopen-dir
-: fopen? ( name len -- ) 2dup filename: 2! find-dirent dup if
-  dirent-dir? ['] fopen-dir and throw
-  dirent-blk open-fid then ;
+: fopen? ( name len -- t|f ) 2dup filename: 2! find-dirent
+  dup if dirent-dir? ['] fopen-dir and throw
+         dirent-blk open-fid then ;
 exception  var filename:  end-exception no-such-file
 : fopen ( name len -- ) 2dup filename: 2!  fopen?
   invert ['] no-such-file and throw ;
