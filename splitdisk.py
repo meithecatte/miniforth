@@ -41,7 +41,7 @@ def do_split(content, old):
     output += b'\n'
     return output
 
-def blocks_as_file(start, fname):
+def blocks_as_file(start, fname, stop=None):
     img_file.seek(start * 1024)
     new_content = b''
     try:
@@ -49,7 +49,12 @@ def blocks_as_file(start, fname):
     except FileNotFoundError:
         f = None
 
-    for i in count(start):
+    if stop is None:
+        blocks = count(start)
+    else:
+        blocks = range(start, stop)
+
+    for i in blocks:
         block = img_file.read(1024)
         if b'\x00' in block:
             block = block[:block.index(b'\x00')]
@@ -75,4 +80,8 @@ if __name__ == "__main__":
 
     with open(img, 'rb') as img_file:
         for bnum, fname in FILE_MAP:
-            blocks_as_file(bnum, fname)
+            try:
+                stop = min(x for x, _ in FILE_MAP if x > bnum)
+            except ValueError:
+                stop = None
+            blocks_as_file(bnum, fname, stop)

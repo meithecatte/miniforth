@@ -3,6 +3,7 @@ import sys
 
 FILE_MAP = [
     (0x01, 'bootstrap.fth'),
+    (0x2f, 'grep.fth'),
     (0x30, 'editor.fth'),
     (0x50, 'filesystem.fth'),
 ]
