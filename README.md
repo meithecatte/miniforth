@@ -153,8 +153,8 @@ Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **497** bytes are used,
-leaving 13 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **496** bytes are used,
+leaving 14 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!
@@ -163,10 +163,6 @@ Byte saving leaderboard:
 
 If a feature is strongly desirable, potential tradeoffs include:
 
- - 1 byte: Use a `SPECIAL_BYTE` for compression such that it can be turned into
-   `0xad` with `inc [di-1]` or another instruction of the same size. This has
-   the disadvantage that avoiding occurances of `SPECIAL_BYTE` becomes harder,
-   and the solution of simply changing the special byte no longer works.
  - ?? bytes: Don't expose the `BASE` variable, hardcode hexadecimal — as it
    turns out, it is not that useful. The current bootstrap doesn't make use of
    `BASE` in the initial interpreter.

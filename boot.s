@@ -80,15 +80,16 @@ start:
     stosb
     cmp al, SPECIAL_BYTE
     jnz short .not_special
-    dec di
-    mov ax, 0xffad ; lodsw / jmp ax
+
+    mov byte [di-1], 0xad ; lodsw
+    ; since SPECIAL_BYTE, we only need to load half of FF E0 jmp ax
+    mov ah, 0xe0
     stosw
-    mov al, 0xe0
-    stosb
     call MakeLink
 .not_special:
     loop .decompress
 
+    ; di = CompressedEnd here
     mov [di + DRIVE_NUMBER - CompressedEnd], dl
     push dx ; for FORTH code
 
