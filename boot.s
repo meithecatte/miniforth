@@ -120,6 +120,9 @@ ReadLine:
     mov al, 0x0a
     int 0x10
     mov [di-1], bl ; write the null terminator by using the BX = 0 from PutChar
+    pop bx
+InterpreterLoopSaveBX:
+    push bx
 InterpreterLoop:
     call ParseWord
     jcxz short ReadLine
@@ -179,10 +182,7 @@ STATE equ $+1
     mov si, .return
     jmp ax
 .return:
-    dw .executed
-.executed:
-    push bx
-    jmp short InterpreterLoop
+    dw InterpreterLoopSaveBX
 
 COMMA:
 HERE equ $+1
