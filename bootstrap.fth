@@ -322,15 +322,15 @@ else drop then ;                                             -->
 : print-str 2@ type ; : str ['] print-str , 2variable ;
 : var #bl token 2dup must-find  dup 1 cells - @ ,
   >r header, 'docol call, r>  >xt , postpone ; ;
-: print-name, ( nt -- ) >name postpone{ 2literal type } ;
-: print-field, ( nt -- ) dup print-name,  postpone space
-  dup >xt ,  1 cells - @ ,  postpone cr ;
-: end-exception ( dict-pos -- ) latest @
-  :  latest @ print-name,  postpone cr
+: print-name ( nt -- ) >name type ;
+: print-field ( nt -- ) dup print-name  space
+  dup  1 cells - @  >r  >xt execute r> execute  cr ;
+: print-exn ( end-pos exn-pos -- ) dup print-name cr @
   begin ( end-pos cur-pos ) 2dup <> while
-    dup print-field,  @
-  repeat  2drop  postpone ;  ;
-                                                             -->
+    dup print-field @
+  repeat 2drop ;
+: end-exception ( dict-pos -- ) :  latest @
+  postpone{ 2literal print-exn ; } ;                         -->
 
 ( defer )
 exception  str defer-vector:  end-exception unset-defer
