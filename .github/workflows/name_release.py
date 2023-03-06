@@ -9,7 +9,7 @@ for letter in abc:
     tag = base + letter
 
     if os.system('git show-ref --quiet --tags ' + tag) != 0:
-        print('::set-output name=release_name::' + tag)
+        os.system(f'echo release_name={tag} >> $GITHUB_OUTPUT')
         break
 else:
     raise hell

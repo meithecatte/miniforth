@@ -16,8 +16,11 @@ jobs:
       - run: ./build.sh
       - run: python3 .github/workflows/name_release.py
         id: name_release
+      - name: Generate changelog
+        run: git log --format='* %B' $(git describe --tags --abbrev=0).. > changelog.txt
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.name_release.outputs.release_name }}
           name: "Snapshot ${{ steps.name_release.outputs.release_name }}"
           files: miniforth.img
+          body_path: changelog.txt
