@@ -246,10 +246,10 @@ next,
 : (slit) r> dup cell+ swap @ ( addr len ) 2dup + >r ;
 : n, ( addr len -- ) here swap dup allot cmove ;
 : slit, ( addr len -- )  compile (slit)  dup ,  n, ;
-: s" ( rt: -- addr len )
-  skip-space [char] " parse
-  compiling? if slit, else
-    here swap 2dup >r >r cmove r> r>
+create sdp 0 ,
+: s" ( rt: -- addr len ) skip-space [char] " parse
+  compiling? if slit, else sdp @ here u< if here sdp ! then
+    sdp @ swap 2dup >r >r cmove r> r>  dup sdp +!
   then ; immediate
 : /string ( str len n -- str+n len-n ) tuck - >r + r> ;      -->
 ( dictionary lookup )
