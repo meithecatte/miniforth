@@ -28,7 +28,7 @@ def format_block(bnum, block):
     else:
         block = block.strip().replace(b'\n', b' ')
     if len(block) > 1024:
-        print('Block', bnum, 'is too large - ', len(block), 'bytes')
+        print('Block', hex(bnum), 'is too large - ', len(block), 'bytes')
         print(block[:64])
         sys.exit(1)
     block += b' ' * (1024 - len(block))
