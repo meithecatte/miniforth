@@ -2,9 +2,9 @@
 vocabulary Editor    Editor definitions
 $C00 constant buf               buf $400 + constant buf-end
 variable row    variable col
-: >buf ( r c -- addr ) buf + swap line-length u* + ;
+: >buf ( r c -- addr ) buf + swap blk-width u* + ;
 : cur>buf ( -- addr ) row @ col @ >buf ;
-: >row ( addr -- u ) line-length u/ $f and ;
+: >row ( addr -- u ) blk-width u/ $f and ;
 : >col ( addr -- u ) $3f and ;
 : buf>cur ( addr -- ) dup >row row !  >col col ! ;
 
@@ -16,8 +16,8 @@ variable dirty  dirty off       value curblk
 : mark ( -- ) dirty on ;                                     -->
 ( editor: rendering )
 : mojibake 4 curpos@ attr!  $A8 emit ; ( $A8 printable? -> 0 )
-create column-colors  line-length allot
-column-colors line-length 7 fill
+create column-colors  blk-width allot
+column-colors blk-width 7 fill
 : colclr! ( clr col -- ) column-colors + c! ;
 f 0 colclr!  f $10 colclr!  f $20 colclr!  f $30 colclr!
 $47 $3f colclr!
@@ -25,7 +25,7 @@ $47 $3f colclr!
 : (show) dup printable? if emit else drop mojibake then ;
 : show-char ( addr -- ) dup (color) c@ (show) ;
 : .lineno ( addr -- ) >row gray decimal 2 u.r space hex ;
-: (show-line) line-length 0 ?do dup show-char 1+ loop ;
+: (show-line) blk-width 0 ?do dup show-char 1+ loop ;
 : show-line ( addr -- addr ) dup .lineno (show-line) cr ;
                                                              -->
 
@@ -36,7 +36,7 @@ defer modeline
   dirty @ if ."  (dirty)" then ;
 ' modeline-normal is modeline
 : (curpos)  row @ $100 u* col @ 3 + + curpos! ;
-: (render) buf  #lines 0 ?do show-line loop  drop ;
+: (render) buf  blk-height 0 ?do show-line loop  drop ;
 variable need-redraw
 ( split rendering into the part before and after the modeline
   -- allows displaying a message by: status ." ..." )
@@ -127,14 +127,14 @@ previous definitions
 
 
 ( editor: line insert )
-buf #lines 1- line-length u* +  constant last-line
-: not-bottom ( -- ) row @ #lines 1- >=
+buf blk-height 1- blk-width u* +  constant last-line
+: not-bottom ( -- ) row @ blk-height 1- >=
   ['] won't-fit-in-buffer and throw ;
 : has-empty ( -- )
-  last-line line-length 0 do dup c@ is#bl 1+ loop  drop ;
+  last-line blk-width 0 do dup c@ is#bl 1+ loop  drop ;
 : how-much ( addr -- count ) last-line swap - ;
-: insert-line ( addr -- ) has-empty dup dup line-length +
-  over how-much move  line-length clear  mark ;
+: insert-line ( addr -- ) has-empty dup dup blk-width +
+  over how-much move  blk-width clear  mark ;
 : line-above  move-begin cur>buf insert-line ;
 : line-below  not-bottom move-down line-above ;
 : insert-above line-above insert-mode ; >> char O bind normal

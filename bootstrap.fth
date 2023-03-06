@@ -174,10 +174,10 @@ next,
 :cmp 0> bx bx orw-rr, jle, cmp;
 :cmp 0>= bx bx orw-rr, jl, cmp;
 : move >r over over u< if r> cmove> else r> cmove then ;
-40 constant line-length
-10 constant #lines
-: show-line dup u. dup line-length type cr line-length + ;
-: list #lines begin >r show-line r> 1 - dup 0= until drop drop ; 
+40 constant blk-width
+10 constant blk-height
+: show-line dup u. dup blk-width type cr blk-width + ;
+: list blk-height begin >r show-line r> 1 - dup 0= until drop drop ; 
 -->
 : skip begin dup >in @ c@ = while 1 >in +! repeat ;
 variable sep
