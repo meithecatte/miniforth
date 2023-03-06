@@ -174,7 +174,6 @@ STATE equ $+1
 
     ; Execute the word
 .execute:
-RetSP equ $+1
     mov di, RS0
     pop bx
     mov si, .return
@@ -182,7 +181,6 @@ RetSP equ $+1
 .return:
     dw .executed
 .executed:
-    mov [RetSP], di
     push bx
     jmp short InterpreterLoop
 
