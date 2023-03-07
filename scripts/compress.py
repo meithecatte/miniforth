@@ -1,7 +1,7 @@
 SPECIAL_BYTE = b'\xff'
 SENTINEL = SPECIAL_BYTE + b'\xef\xbe\xad\xde'
 
-with open('raw.bin', 'rb') as f:
+with open('build/raw.bin', 'rb') as f:
     data = f.read()
 
 output_offset = data.index(b'\xcc' * 20)
@@ -26,5 +26,5 @@ print(len(output), 'bytes used')
 output += b'\x00' * (510 - len(output))
 output += b'\x55\xaa'
 
-with open('boot.bin', 'wb') as f:
+with open('build/boot.bin', 'wb') as f:
     f.write(output)

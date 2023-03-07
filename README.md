@@ -40,15 +40,15 @@ your package manager of choice. Then run `./build.sh`.
 
 This will create the following artifacts:
 
-- `boot.bin` - the built bootsector.
-- `uefix.bin` - the chainloader (see below).
-- `disk.img` - a disk image with the contents of `block*.fth` installed into
+- `build/boot.bin` - the built bootsector.
+- `build/uefix.bin` - the chainloader (see below).
+- `miniforth.img` - a disk image with the contents of `block*.fth` installed into
   the blocks.
-- `boot.lst` - a listing with the raw bytes of each instruction.
+- `build/boot.lst` - a listing with the raw bytes of each instruction.
    Note that the `dd 0xdeadbeef` are removed by `scripts/compress.py`.
 
 The build will print the number of used bytes, as well as the number of block files found.
-You can run the resulting disk image in QEMU with `./run.sh`, or pass `./run.sh boot.bin`
+You can run the resulting disk image in QEMU with `./run.sh`, or pass `./run.sh build/boot.bin`
 if you do not want to include the code from `*.fth` in your disk. QEMU will run in curses
 mode, exit with <kbd>Alt</kbd> + <kbd>2</kbd>, <kbd>q</kbd>, <kbd>Enter</kbd>.
 

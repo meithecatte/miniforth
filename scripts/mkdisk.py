@@ -52,10 +52,10 @@ def blocks_at(begin, fname):
             blocks[bnum] = format_block(bnum, block)
 
 if __name__ == "__main__":
-    with open('uefix.bin', 'rb') as f:
+    with open('build/uefix.bin', 'rb') as f:
         uefix = f.read()
 
-    with open('boot.bin', 'rb') as f:
+    with open('build/boot.bin', 'rb') as f:
         boot = f.read()
 
     blocks = {}
