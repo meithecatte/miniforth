@@ -45,7 +45,7 @@ This will create the following artifacts:
 - `disk.img` - a disk image with the contents of `block*.fth` installed into
   the blocks.
 - `boot.lst` - a listing with the raw bytes of each instruction.
-   Note that the `dd 0xdeadbeef` are removed by `compress.py`.
+   Note that the `dd 0xdeadbeef` are removed by `scripts/compress.py`.
 
 The build will print the number of used bytes, as well as the number of block files found.
 You can run the resulting disk image in QEMU with `./run.sh`, or pass `./run.sh boot.bin`
@@ -147,8 +147,8 @@ All this code was originally developed within Miniforth itself, which meant it w
 stored within a disk image — a format that's not very friendly to tooling like
 Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
- - `mkdisk.py` takes the files and merges them into a bootable disk image;
- - `splitdisk.py` extracts the code from a disk image's blocks and splits
+ - `scripts/mkdisk.py` takes the files and merges them into a bootable disk image;
+ - `scripts/splitdisk.py` extracts the code from a disk image's blocks and splits
    it into files.
 
 ## Free bytes

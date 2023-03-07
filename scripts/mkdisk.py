@@ -2,12 +2,12 @@ from itertools import count
 import sys
 
 FILE_MAP = [
-    (0x01, 'bootstrap.fth'),
-    (0x2f, 'grep.fth'),
-    (0x30, 'editor.fth'),
-    (0x50, 'filesystem.fth'),
-    (0x5f, 'install.fth'),
-    (0x60, 'feddy.fth'),
+    (0x01, 'blocks/bootstrap.fth'),
+    (0x2f, 'blocks/grep.fth'),
+    (0x30, 'blocks/editor.fth'),
+    (0x50, 'blocks/filesystem.fth'),
+    (0x5f, 'blocks/install.fth'),
+    (0x60, 'blocks/feddy.fth'),
 ]
 
 # Most blocks (which we'll call *formatted*) are stored in the repository

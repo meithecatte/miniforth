@@ -14,7 +14,7 @@ jobs:
           fetch-depth: 0
       - run: sudo apt install yasm
       - run: ./build.sh
-      - run: python3 .github/workflows/name_release.py
+      - run: python3 scripts/name_release.py
         id: name_release
       - name: Generate changelog
         run: git log --format='* %B' $(git describe --tags --abbrev=0).. > changelog.txt
