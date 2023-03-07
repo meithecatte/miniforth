@@ -70,6 +70,7 @@ start:
     ; so this is safe without an explicit cli/sti.
     pop ss
     mov sp, stack
+    mov bp, BP_POS
     cld
 
     mov si, CompressedData
@@ -156,7 +157,7 @@ LATEST equ $+1
     push bx
     ; At this point, AH is zero, since it contains the higher half of the pointer
     ; to the next word, which we know is NULL.
-    cmp byte[STATE], ah
+    cmp byte[byte bp-BP_POS+STATE], ah
     jnz short InterpreterLoop
     ; Otherwise, compile the literal.
     mov ax, LIT
@@ -187,9 +188,11 @@ STATE equ $+1
 COMMA:
 HERE equ $+1
     mov [CompressedEnd], ax
-    add word[HERE], 2
+    add word[byte bp-BP_POS+HERE], 2
 Return:
     ret
+
+BP_POS equ $
 
 ; returns
 ; DX = pointer to string
@@ -231,8 +234,8 @@ BASE equ $
 ; Creates a dictionary linked list link at DI.
 MakeLink:
     mov ax, di
-    xchg [LATEST], ax  ; AX now points at the old entry, while
-                       ; LATEST and DI point at the new one.
+    xchg [byte bp-BP_POS+LATEST], ax  ; AX now points at the old entry, while
+                                 ; LATEST and DI point at the new one.
     stosw
     ret
 
@@ -337,7 +340,7 @@ defcode UDOT, "u."
     push byte -((-0x89) & 0xff)
 .split:
     xor dx, dx
-    div word[BASE]
+    div word[byte bp-BP_POS+BASE]
     push dx
     or ax, ax
     jnz .split
@@ -394,14 +397,14 @@ defcode LINE, "s:" ; ( buf -- buf+len )
     xchg si, [InputPtr]
 
 defcode LBRACK, "[", F_IMMEDIATE
-    inc byte[STATE]
+    inc byte[byte bp-BP_POS+STATE]
 
 defcode RBRACK, "]"
-    dec byte[STATE]
+    dec byte[byte bp-BP_POS+STATE]
 
 defcode COLON, ":"
     pusha
-    mov di, [HERE]
+    mov di, [byte bp-BP_POS+HERE]
     call MakeLink
     call ParseWord
     mov ax, cx
@@ -416,7 +419,7 @@ defcode COLON, ":"
     mov ax, DOCOL - 2
     sub ax, di
     stosw
-    mov [HERE], di
+    mov [byte bp-BP_POS+HERE], di
     popa
     jmp short RBRACK
 
