@@ -8,6 +8,7 @@
 from difflib import SequenceMatcher
 from itertools import zip_longest, count
 from mkdisk import read_block, FILE_MAP
+from filesystem import FS
 import re
 import sys
 
@@ -85,3 +86,4 @@ if __name__ == "__main__":
             except ValueError:
                 stop = None
             blocks_as_file(bnum, fname, stop)
+        FS(img_file).extract_to('files')

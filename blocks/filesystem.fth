@@ -37,15 +37,15 @@ vocabulary Files     Files definitions
 : bread ( blk buf -- ) >r >r disk# r> >lba 8 r> dread ;
 : bwrite ( blk buf -- ) >r >r disk# r> >lba 8 r> dwrite ;
 $2000 constant freebits         0 freebits bread
-: >bit ( #bit -- val addr ) 8 u/mod >r 1 swap lshift r>
-  freebits + ;
+: (>bit) ( #bit -- val offset ) 8 u/mod >r 1 swap lshift r> ;
+: >bit ( #bit -- val addr ) (>bit) freebits + ;
 : is-free ( blk -- ? ) >bit c@ and 0= ;
 : save-bits ( -- ) 0 freebits bwrite ;
 : (mark-free) ( blk -- ) >bit dup >r c@ swap invert and r> c! ;
-: (mark-used) ( blk -- ) >bit dup >r c@ or r> c! ;
+: (mark-used) ( blk -- ) >bit dup >r c@ or r> c! ;           -->
 
 
-                                                             -->
+
 ( filesystem -- freebits manipulation )
 : mark-free ( -- )  (mark-free) save-bits ;
 : mark-used ( -- )  (mark-used) save-bits ;

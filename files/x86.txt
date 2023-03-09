@@ -1,0 +1,98 @@
+registers:
+0 al ax eax es
+1 cl cx ecx cs
+2 dl dx edx ss
+3 bl bx ebx ds
+4 ah sp esp fs
+5 ch bp ebp gs
+6 dh si esi
+7 bh di edi
+
+66 - data size prefix
+67 - address size prefix
+
+16-bit ModR/M: ttrrrmmm
+0 -> [regs], except [bp] is really a pure disp16
+1 -> [regs+disp8]
+2 -> [regs+disp16]
+3 -> reg
+
+where [regs]:
+0 [bx+si]
+1 [bx+di]
+2 [bp+si]
+3 [bp+di]
+4 [si]
+5 [di]
+6 [bp]
+7 [bx]
+
+32-bit ModR/M: ttrrrmmm
+0 -> [reg], except [ebp] is really a pure disp32
+1 -> [reg+disp8]
+2 -> [reg+disp32]
+3 -> reg
+
+exception: [esp+?] is actually [sib+?]
+SIB byte: ssiiibbb
+index << scale + base
+except esp can't be index, you get none instead (useful when base=esp)
+except base=ebp is actually a disp32
+
+this means, if you want to use scaling without a base register,
+you need a disp32. not a common usecase though
+
+similarly, you can't have ebp without a displacement
+
+1000 10[read][wide] - mov with ModR/M
+C6 + [wide] /0 - mov r/m, imm
+1011 [wide][reg] - mov reg, imm
+
+ALU instructions:
+00[op]0[read][wide] - with ModR/M
+00[op]1   0  [wide] - al/ax/eax, imm
+1000 00[sext][wide] / [op] - r/m, imm
+ops:
+0 add
+1 or
+2 adc
+3 sbb
+4 and
+5 sub
+6 xor
+7 cmp
+
+01000reg  inc (wide)
+01001reg  dec (wide)
+01010reg  push
+01011reg  pop
+
+01101000  push imm16/32
+01101010  push imm8
+
+1010101[wide] - stos
+1010110[wide] - lods
+
+Jumps:
+0111[cc][neg] - rel8
+0 jo
+2 jb
+4 jz
+6 jbe
+8 js
+A jp
+C jl
+E jle
+
+0F 1000[cc][neg] - rel16/32
+0F 1001[cc][neg] - setcc
+
+E8 call rel16/32
+E9 jmp  rel16/32
+EA jmpf ptr16:16/32
+EB jmp  rel8
+CD int  imm8
+
+pmode-specific:
+0F01/2 - lgdt [m]
+0F 0010 00[r/m reg is src]0 - mov cr

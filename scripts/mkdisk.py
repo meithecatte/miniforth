@@ -1,4 +1,5 @@
 from itertools import count
+from filesystem import FS, make_partition
 import sys
 
 FILE_MAP = [
@@ -71,5 +72,10 @@ if __name__ == "__main__":
         offset = 1024 * bnum
         output[offset:offset+1024] = block
 
-    with open('miniforth.img', 'wb') as f:
+    with open('miniforth.img', 'w+b') as f:
         f.write(output)
+        start = 2048
+        count = 2048
+        f.truncate(512 * (start + count))
+        make_partition(f, start, count)
+        FS(f).pack('files')
