@@ -32,11 +32,11 @@
   else ." Invalid signature" cr then ;                       -->
 ( filesystem -- 4k blocks, free/used bitmap )
 vocabulary Files     Files definitions
-2variable lba0  load-ptable     0 part-start lba0 2!
+2variable lba0
 : >lba ( blk -- dLBA ) 0 8 ud*u lba0 2@ d+ ;
 : bread ( blk buf -- ) >r >r disk# r> >lba 8 r> dread ;
 : bwrite ( blk buf -- ) >r >r disk# r> >lba 8 r> dwrite ;
-$2000 constant freebits         0 freebits bread
+$2000 constant freebits
 : (>bit) ( #bit -- val offset ) 8 u/mod >r 1 swap lshift r> ;
 : >bit ( #bit -- val addr ) (>bit) freebits + ;
 : is-free ( blk -- ? ) >bit c@ and 0= ;
@@ -63,7 +63,7 @@ exception end-exception out-of-space
   if drop alloc-sparse then ;
                                                              -->
 ( filesystem -- blocklist: blk blk blk ... 0 0 0 ... fsize )
-exception end-exception no-file-open   create cur-fid 0 ,
+exception end-exception no-file-open   variable cur-fid
 : fid? ( -- ) cur-fid @ 0= ['] no-file-open and throw ;
 $3000 constant blks             $3FFC constant fsize
 : save-blks ( -- ) fid? cur-fid @ blks bwrite ;
@@ -205,4 +205,20 @@ variable src-fid    2variable src-fpos
   begin ensure-src fneof? while refill-file interpret repeat
   2r> src-fpos 2!  r> src-fid ! ;
 : exec ( fname. -- ) 0. 2swap (exec) ;
+                                                             -->
+( filesystem -- remount )
+: mount ( -- )
+  load-ptable  0 part-start lba0 2!
+  0 freebits bread  0 cur-fid ! ;
+
+mount
+
+
+
+
+
+
+
+
+
 
