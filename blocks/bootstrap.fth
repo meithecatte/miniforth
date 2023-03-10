@@ -221,7 +221,7 @@ next,
   bx push, [di] bx movw+mr, next, ;
 0 rpick: r@     1 rpick: rover  2 rpick: 2rpick              -->
 ( double-cell values, stored little endian - ANS be damned )
-: s>d dup 0< ;  : d>s drop ;    : d0<> or 0<> ;
+: s>d dup 0< ;  : d>s drop ;  : d0<> or 0<> ;  : d0= or 0= ;
 : 2@ dup @ swap cell+ @ ;       : 2! swap over cell+ ! ! ;
 : 2literal swap lit, lit, ; immediate
 : 2variable create 2 cells allot ;
