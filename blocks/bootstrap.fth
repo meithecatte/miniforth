@@ -1,216 +1,138 @@
-: >in a02 ;
-: run >in ! ;
-swap : dp 0 [ dup @ 2 - ! ] ;
-: here dp @ ;
-: cell+ 2 + ;
-: cells dup + ;
-: +! dup >r @ + r> ! ;
-: allot dp +! ;
-: c, here c! 1 allot ;
-: , here ! 2 allot ;
-: 'lit 0 [ here 4 - @ here 2 - ! ] ;
-: lit, 'lit , , ;
-: disk# [ lit, ] ;
-: base [ lit, ] ;
-: st [ lit, ] ;
-: latest [ lit, ] ;
-: [[ 1 st c! ;
-here 2 - @ : 'exit [ lit, ] ;
-: create: : [[ ;
-: create create: here 3 cells + lit, 'exit , ;
+: >in a02 ; : run >in ! ;       swap : dp 0 [ dup @ 2 - ! ] ;
+: here dp @ ;  : cell+ 2 + ;  : cell- 2 - ;  : cells dup + ;
+: +! dup >r @ + r> ! ;  : allot dp +! ;  : c, here c! 1 allot ;
+: , here ! 2 allot ;   : 'lit 0 [ here 4 - @ here 2 - ! ] ;
+: lit,  'lit , , ;   : disk# [ lit, ] ;   : base [ lit, ] ;
+: st [ lit, ] ;   : latest [ lit, ] ;   : [[ 1 st c! ;
+here 2 - @  : 'exit [ lit, ] ;          : create:  : [[ ;
+: create  create:  here 3 cells + lit,  'exit , ;
 : constant create: lit, 'exit , ;
 : variable create 1 cells allot ;
-create blk 1 ,
-: load' load ;
-: load dup blk ! load' ;
+create blk 1   ,
+: load' load ;  : load  dup blk !  load' ;
 : --> blk @ 1 + load ;
-: ax 0 ; : cx 1 ; : dx 2 ; : bx 3 ; : sp 4 ; : bp 5 ; : si 6 ; : di 7 ;
-: al 0 ; : cl 1 ; : dl 2 ; : bl 3 ; : ah 4 ; : ch 5 ; : dh 6 ; : bh 7 ;
 : :code create: 0 3 - allot ;
-: stosb, aa c, ; : stosw, ab c, ; : lodsb, ac c, ; : lodsw, ad c, ;
-: 2* dup + ;
-: 3shl 2* 2* 2* ;
-: rm-r, 3shl + c0 + c, ;
-: jmp-r, ff c, 4 rm-r, ;
-: next, lodsw, ax jmp-r, ;
-: movw-rr, 8b c, rm-r, ;
-: push, 50 + c, ;
--->
-: pop, 58 + c, ;
-: movb-ir, b0 + c, c, ;
-: int, cd c, c, ;
-: movw-ir, b8 + c, , ;
+: 2*  dup + ; : 3shl 2* 2* 2* ;                              -->
+
+: ax 0 ;    : cx 1 ;    : dx 2 ;    : bx 3 ;
+: sp 4 ;    : bp 5 ;    : si 6 ;    : di 7 ;
+: al 0 ;    : cl 1 ;    : dl 2 ;    : bl 3 ;
+: ah 4 ;    : ch 5 ;    : dh 6 ;    : bh 7 ;
+: stosb, AA c, ;   : stosw, AB c, ;  : lodsb, AC c, ;
+: lodsw, AD c, ;   : movsb, A4 c, ;  : movsw, A5 c, ;
+: rm-r,  3shl + C0 + c, ;       : jmp-r,  FF c, 4 rm-r, ;
+: next,  lodsw,  ax jmp-r, ;    : movw-rr,  8B c, rm-r, ;
+: push,  50 + c, ;   : pop, 58 + c, ;   : int, cd c, c, ;
+: movb-ir,  B0 + c, c, ;        : movw-ir,  B8 + c, , ;      -->
+
+
+
+
+
+
 create packet 10 allot
-:code int13
-si push,
-packet si movw-ir,
-bx ax movw-rr,
-disk# dl movb-ir,
-13 int,
-ax bx movw-rr,
-si pop,
-next,
-variable pos
-: pos, pos @ ! 2 pos +! ;
-: make-packet packet pos ! 10 pos, 2 pos, pos, 0 pos, 2* pos, 0 pos, 0 pos, 0 pos, ;
+:code int13  si push,  packet si movw-ir,  bx ax movw-rr,
+  disk# dl movb-ir,  13 int,  ax bx movw-rr,  si pop,  next,
+variable pos                    : pos, pos @ ! 2 pos +! ;
+: make-packet packet pos ! 10 pos, 2 pos, pos, 0 pos,
+  2* pos, 0 pos, 0 pos, 0 pos, ;
 : read-block make-packet 4200 int13 ;
-: write-block make-packet 4300 int13 ;
-: cr 0D emit 0A emit ;
-: incw, 40 + c, ;
-: decw, 48 + c, ;
-: addw-rr, 03 c, rm-r, ;
-: orw-rr, 0b c, rm-r, ;
-: andw-rr, 23 c, rm-r, ;
-: subw-rr, 2b c, rm-r, ;
-: xorw-rr, 33 c, rm-r, ;
-: cmpw-rr, 3b c, rm-r, ;
-: jb, 72 c, ; : jc, 72 c, ; : jae, 73 c, ; : jnc, 73 c, ;
-: jz, 74 c, ; : jnz, 75 c, ; : jbe, 76 c, ; : ja, 77 c, ;
-: jl, 7c c, ; : jge, 7d c, ; : jle, 7e c, ; : jg, 7f c, ;
-: j> here 0 c, ;
-: >j dup >r 1 + here swap - r> c! ;
-: j< here ;
-: <j here 1 + - c, ;
-: p dup c@ u. 1 + ;
-: :cmp :code ax ax xorw-rr, ;
-: cmp; j> ax decw, >j ax bx movw-rr, next, ;
-:cmp 0= bx bx orw-rr, jnz, cmp;
--->
-:cmp 0<> bx bx orw-rr, jz, cmp;
-:cmp = cx pop, bx cx cmpw-rr, jnz, cmp;
-:cmp <> cx pop, bx cx cmpw-rr, jz, cmp;
+: write-block  make-packet 4300 int13 ;
+: incw,    40 + c, ;            : decw, 48 + c, ;
+: addw-rr, 03 c, rm-r, ;        : orw-rr, 0b c, rm-r, ;
+: andw-rr, 23 c, rm-r, ;        : subw-rr, 2b c, rm-r, ;
+: xorw-rr, 33 c, rm-r, ;        : cmpw-rr, 3b c, rm-r, ;
 : compile r> dup cell+ >r @ , ;
-: immediate latest @ cell+ dup >r c@ 80 + r> c! ;
-:code (branch)
-lodsw,
-ax si movw-rr,
-next,
-:code (0branch)
-lodsw,
-bx bx orw-rr,
-jnz, j>
-ax si movw-rr,
->j
-bx pop,
-next,
-: br> here 0 , ;
-: >br here swap ! ;
-: br< here ;
-: <br , ;
+: immediate latest @ cell+ dup >r c@ 80 + r> c! ;            -->
+
+
+: rep, F2 c, ;    : cld, FC c, ;    : std, FD c, ;
+: cmpsb, A6 c, ;  : cmpsw, A7 c, ;
+: notw-r, F7 c, 2 rm-r, ;
+: [bx+si] 0 ;  : [bx+di] 1 ;  : [bp+si] 2 ;  : [bp+di] 3 ;
+: [si] 4 ;  : [di] 5 ;  : [#] 6 ;  : [bp] 6 ;  : [bx] 7 ;
+: m-r, 3shl + c, ;              : r-m, swap m-r, ;
+: movw-mr, 8B c, m-r, ;         : movw-rm, 89 c, r-m, ;
+:code or   ax pop,  ax bx orw-rr,   next,
+:code and  ax pop,  ax bx andw-rr,  next,
+:code xor  ax pop,  ax bx xorw-rr,  next,
+: jz, 74 c, ;   : jnz, 75 c, ;
+: j> here 0 c, ;  : >j dup >r 1 + here swap - r> c! ;
+: j< here ;       : <j here 1 + - c, ;
+
+: :cmp  :code  ax ax xorw-rr, ;
+: cmp;  j> ax decw, >j  ax bx movw-rr,  next, ;              -->
+:cmp 0=  bx bx orw-rr, jnz, cmp;
+:cmp 0<> bx bx orw-rr, jz,  cmp;
+:cmp =  cx pop, bx cx cmpw-rr, jnz, cmp;
+:cmp <> cx pop, bx cx cmpw-rr, jz,  cmp;
+:code (branch)   lodsw,  ax si movw-rr, next,
+:code (0branch)  lodsw,  bx bx orw-rr,  jnz, j>
+  ax si movw-rr, >j  bx pop,  next,
+: br> here 0 , ;  : >br here swap ! ;  : br< here ;  : <br , ;
 : if compile (0branch) br> ; immediate
-: then >br ; immediate
 : else >r compile (branch) br> r> >br ; immediate
-: begin br< ; immediate
+: then >br ; immediate          : begin br< ; immediate
 : again compile (branch) <br ; immediate
 : until compile (0branch) <br ; immediate
 : while compile (0branch) br> swap ; immediate
 : repeat compile (branch) <br >br ; immediate
-: seek begin dup c@ 0<> while 1 + repeat ;
-: type begin dup while 1 - >r dup c@ emit 1 + r> repeat drop drop ;
-: over >r dup r> swap ;
-: rdrop r> r> drop >r ;
-:code or ax pop, ax bx orw-rr, next,
-:code and ax pop, ax bx andw-rr, next,
-:code xor ax pop, ax bx xorw-rr, next,
-:code sp@ bx push, sp bx movw-rr, next,
--->
-: rep, F2 c, ;
-: movsb, A4 c, ; : movsw, A5 c, ; : cmpsb, A6 c, ; : cmpsw, A7 c, ;
-:code cmove
-bx cx movw-rr,
-si ax movw-rr, di dx movw-rr,
-di pop, si pop,
-rep, movsb,
-ax si movw-rr, dx di movw-rr,
-bx pop, next,
-: cld, FC c, ; : std, FD c, ;
-:code (cmove>)
-bx cx movw-rr,
-si ax movw-rr, di dx movw-rr,
-di pop, si pop,
-std, rep, movsb, cld,
-ax si movw-rr, dx di movw-rr,
-bx pop, next,
-: cmove> dup >r 1 - dup >r + swap r> + swap r> (cmove>) ;
-: #bl 20 ; : space #bl emit ;
-:code 1+ bx incw, next,
-: count dup 1+ swap c@ ;
-1F constant lenmask
-: >name cell+ count lenmask and ;
-: visible? cell+ c@ 40 and 0= ;
-: words-in begin dup while
-dup visible? if dup >name type space then
-@ repeat drop ;
-: words latest @ words-in ;
-sp@ constant s0
-: sarw1, D1 c, 7 rm-r, ;
-:code 2/ bx sarw1, next,
-: depth sp@ s0 swap - 2/ ;
-: [bx+si] 0 ; : [bx+di] 1 ; : [bp+si] 2 ; : [bp+di] 3 ;
-: [si] 4 ; : [di] 5 ; : [#] 6 ; : [bp] 6 ; : [bx] 7 ;
-: m-r, 3shl + c, ;
-: r-m, swap m-r, ;
-: movw-mr, 8B c, m-r, ;
-: movw-rm, 89 c, r-m, ;
--->
-:code pick
-bx bx addw-rr,
-sp bx addw-rr,
-[bx] bx movw-mr,
-next,
-: notw-r, F7 c, 2 rm-r, ;
-:code invert bx notw-r, next,
-: false 0 ; : true ffff ;
-:cmp u< cx pop, bx cx cmpw-rr, jae, cmp;
-:cmp u<= cx pop, bx cx cmpw-rr, ja, cmp;
-:cmp u> cx pop, bx cx cmpw-rr, jbe, cmp;
-:cmp u>= cx pop, bx cx cmpw-rr, jb, cmp;
-:cmp < cx pop, bx cx cmpw-rr, jge, cmp;
-:cmp <= cx pop, bx cx cmpw-rr, jg, cmp;
-:cmp > cx pop, bx cx cmpw-rr, jle, cmp;
-:cmp >= cx pop, bx cx cmpw-rr, jl, cmp;
-:cmp 0< bx bx orw-rr, jge, cmp;
-:cmp 0<= bx bx orw-rr, jg, cmp;
-:cmp 0> bx bx orw-rr, jle, cmp;
-:cmp 0>= bx bx orw-rr, jl, cmp;
-: move >r over over u< if r> cmove> else r> cmove then ;
-40 constant blk-width
-10 constant blk-height
-: show-line dup u. dup blk-width type cr blk-width + ;
-: list blk-height begin >r show-line r> 1 - dup 0= until drop drop ; 
--->
-: skip begin dup >in @ c@ = while 1 >in +! repeat ;
-variable sep
-: sep? dup 0= swap sep @ = or ;
-: +sep dup c@ 0<> if 1+ then ;
-: parse sep ! >in @ dup begin
-dup c@ sep? invert while 1+ repeat
-dup +sep >in ! over - ;
-: token skip parse ;
-: char #bl token drop c@ ;
-: [char] char lit, ; immediate
-: 2drop drop drop ;
+: over >r dup r> swap ;         : rdrop  r> r> drop >r ;     -->
+:code 1-  bx decw, next,        :code 1+ bx incw, next,
+:code invert  bx notw-r,  next,
+: sarw1, D1 c, 7 rm-r, ;        :code 2/ bx sarw1, next,
+:code sp@  bx push,  sp bx movw-rr,  next,
+sp@ constant s0                 : depth sp@ s0 swap - 2/ ;
+20 constant #bl  : space  #bl emit ;  : cr  0D emit 0A emit ;
+variable sep                    : false  0 ;    : true  ffff ;
+: skip  begin dup  >in @ c@ = while  1 >in +! repeat ;
+: sep? dup 0= swap sep @ = or ;  : +sep dup c@ 0<> if 1+ then ;
+: parse  sep !  >in @ dup begin dup c@ sep? invert while
+  1+ repeat  dup +sep  >in !  over - ;  : 2dup over over ;
+: token  skip parse ;   : char  #bl token drop c@ ;
+: [char]  char lit, ; immediate         : 2drop drop drop ;
 : ( [char] ) parse 2drop ; immediate
-:code fill
-bx ax movw-rr,
-cx pop,
-di dx movw-rr, di pop,
-rep, stosb,
-dx di movw-rr,
-bx pop,
-next,
-: next-line 3f or 1+ ;
-: 2dup over over ;
-: skip-space 1 >in +! ;
-: clear #bl fill ;
--->
+: type  begin dup while 1 - >r dup c@ emit 1+ r> repeat 2drop ;
+: p  dup c@ u. 1+ ;                                          -->
+( extra comparisons )
+: jbe, 76 c, ;  : ja, 77 c, ;   : jl, 7c c, ;   : jge, 7d c, ;
+: jle, 7E c, ;  : jg, 7F c, ;   : jb, 72 c, ;   : jae, 73 c, ;
+:cmp u<  cx pop, bx cx cmpw-rr, jae, cmp;
+:cmp u<= cx pop, bx cx cmpw-rr, ja, cmp;
+:cmp u>  cx pop, bx cx cmpw-rr, jbe, cmp;
+:cmp u>= cx pop, bx cx cmpw-rr, jb, cmp;
+:cmp <   cx pop, bx cx cmpw-rr, jge, cmp;
+:cmp <=  cx pop, bx cx cmpw-rr, jg, cmp;
+:cmp >   cx pop, bx cx cmpw-rr, jle, cmp;
+:cmp >=  cx pop, bx cx cmpw-rr, jl, cmp;
+:cmp 0<  bx bx orw-rr, jge, cmp;
+:cmp 0<= bx bx orw-rr, jg, cmp;
+:cmp 0>  bx bx orw-rr, jle, cmp;
+:cmp 0>= bx bx orw-rr, jl, cmp;
+                                                             -->
+( cmove move fill list )
+:code cmove  bx cx movw-rr,  si ax movw-rr,  di dx movw-rr,
+  di pop,  si pop,  rep, movsb,
+  ax si movw-rr,  dx di movw-rr,  bx pop,  next,
+:code (cmove>) bx cx movw-rr,  si ax movw-rr,  di dx movw-rr,
+  di pop,  si pop,  std,  rep, movsb,  cld,
+  ax si movw-rr,  dx di movw-rr,  bx pop,  next,
+: cmove>  dup >r 1- dup >r + swap r> + swap r> (cmove>) ;
+: move  >r 2dup u< if r> cmove> else r> cmove then ;
+:code fill  bx ax movw-rr,  cx pop,  di dx movw-rr,  di pop,
+  rep, stosb,  dx di movw-rr,  bx pop,  next,
+40 constant blk-width 10 constant blk-height
+: show-line dup u. dup blk-width type cr blk-width + ;
+: list blk-height begin >r show-line r> 1 - dup 0=
+  until 2drop ;                 : clear #bl fill ;
+: next-line 3f or 1+ ;          : skip-space 1 >in +! ;      -->
 ( stack manipulation )
-: nip ( ab--b) swap drop ;  : tuck ( ab--bab) swap over ;
-: rot ( abc--bca) >r swap r> swap ;  : -rot rot rot ;
-:code 2swap ( c d a b -- a b c d )
-  ax pop, dx pop, cx pop,
+: nip ( ab--b ) swap drop ;  : tuck ( ab--bab ) swap over ;
+: rot ( abc--bca ) >r swap r> swap ;  : -rot rot rot ;
+:code 2swap ( c d a b -- a b c d )  ax pop,  dx pop,  cx pop,
   ax push, bx push, cx push, dx bx movw-rr, next,
-:code 1- bx decw, next,         : cell- 2 - ;
+:code pick  bx bx addw-rr,  sp bx addw-rr,
+  [bx] bx movw-mr,  next,
 : literal lit, ; immediate      : negate  0 swap - ;
 : within ( n lo hi -- f|t ) over - >r - r> u< ;
 : s8? ( n -- f|t ) FF80 80 within ;
@@ -253,6 +175,9 @@ create sdp 0 ,
   then ; immediate
 : /string ( str len n -- str+n len-n ) tuck - >r + r> ;      -->
 ( dictionary lookup )
+1F constant lenmask             : count  dup 1+ swap c@ ;
+: >name  ( nt -- name len )  cell+ count lenmask and ;
+: visible?  ( nt -- t|f )  cell+ c@ 40 and 0= ;
 : search-in ( name len first-nt -- nt|0 )
   begin dup while >r
     2dup r@ >name s= r@ visible? and if
@@ -263,11 +188,8 @@ create sdp 0 ,
 : immediate? ( nt -- t|f ) cell+ c@ 80 and 0<> ;
 : must-find find ; ( overwritten after exceptions )
 : ' #bl token must-find >xt ;
-: ['] ' lit, ; immediate
+: ['] ' lit, ; immediate                                     -->
 
-
-
-                                                             -->
 ( postpone postpone{ )
 : (postpone) ( str -- ) must-find dup immediate? invert
   if compile compile then   >xt , ;
@@ -664,10 +586,10 @@ Root definitions
 : order search-order stk.iter> ?do i @ vocab. space >next
   space current @ vocab. ;
 : only begin search-order stk.depth 1 > while previous repeat ;
+: words-in  begin dup while  dup visible?
+  if  dup >name type space then  @ repeat drop ;
 : words  search-order peek @ words-in ;
-
 previous definitions                                         -->
-
 ( random words not defined earlier )
 : callot ( u -- ) here over allot swap 0 fill ;
 : max ( a b -- m ) 2dup < if nip else drop then ;
