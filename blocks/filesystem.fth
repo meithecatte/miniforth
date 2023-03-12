@@ -3,7 +3,7 @@
   packet pos !
   10 pos, ( magic )
   swap pos, ( count )
-  pos, 0 pos, ( buffer )
+  pos, ds@ pos, ( buffer )
   swap pos, pos, 0 pos, 0 pos, ( LBA ) ;
 :code do-int13 ( disk ax -- err? )
   dx pop,  si push, packet si movw-ir,

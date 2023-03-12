@@ -3,10 +3,6 @@
 ( well, apparently I was too wasteful. )
 ( and reengineering everything is not my idea of a good time. )
 
-: es 0 ;  : cs 1 ;  : ss 2 ;  : ds 3 ;
-: r-rm,  swap rm-r, ;
-: movw-sr,  $8C c, r-rm, ;
-: movw-rs,  $8E c, rm-r, ;
 : retf, $CB c, ;
 
 :code ds>fs-cmove ( src dst count -- )
@@ -49,3 +45,6 @@ variable saved-rp
   sp@ cell+ saved-sp !
   rp@ saved-rp !
   undirty >alter (switch) ;
+
+( to make load work outside of alter 0 )
+:noname  dup blk !  600 read-block  0 a00 c!  600 >in ! ; is load

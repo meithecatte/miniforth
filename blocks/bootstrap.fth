@@ -18,23 +18,23 @@ create blk 1   ,
 : sp 4 ;    : bp 5 ;    : si 6 ;    : di 7 ;
 : al 0 ;    : cl 1 ;    : dl 2 ;    : bl 3 ;
 : ah 4 ;    : ch 5 ;    : dh 6 ;    : bh 7 ;
+: es 0 ;    : cs 1 ;    : ss 2 ;    : ds 3 ;
 : stosb, AA c, ;   : stosw, AB c, ;  : lodsb, AC c, ;
 : lodsw, AD c, ;   : movsb, A4 c, ;  : movsw, A5 c, ;
 : rm-r,  3shl + C0 + c, ;       : jmp-r,  FF c, 4 rm-r, ;
 : next,  lodsw,  ax jmp-r, ;    : movw-rr,  8B c, rm-r, ;
-: push,  50 + c, ;   : pop, 58 + c, ;   : int, cd c, c, ;
-: movb-ir,  B0 + c, c, ;        : movw-ir,  B8 + c, , ;      -->
-
-
-
-
+: push,  50 + c, ;   : pop, 58 + c, ;   : int, CD c, c, ;
+: movb-ir,  B0 + c, c, ;        : movw-ir,  B8 + c, , ;
+: r-rm,  swap rm-r, ;
+: movw-sr,  8C c, r-rm, ;       : movw-rs,  8E c, rm-r, ;
+:code ds@  bx push,  ds bx movw-sr,  next,                   -->
 
 
 create packet 10 allot
 :code int13  si push,  packet si movw-ir,  bx ax movw-rr,
   disk# dl movb-ir,  13 int,  ax bx movw-rr,  si pop,  next,
 variable pos                    : pos, pos @ ! 2 pos +! ;
-: make-packet packet pos ! 10 pos, 2 pos, pos, 0 pos,
+: make-packet packet pos ! 10 pos, 2 pos, pos, ds@ pos,
   2* pos, 0 pos, 0 pos, 0 pos, ;
 : read-block make-packet 4200 int13 ;
 : write-block  make-packet 4300 int13 ;
