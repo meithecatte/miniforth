@@ -257,8 +257,11 @@ variable is-linewise
 : out-of-space ." out-of-space" ;
 : has-space ( u -- ) #buf @ + #buf @ u<
   ['] out-of-space and throw ;
-: make-space ( b u -- ) dup has-space  swap #buf @ 1- do
-  i b@ over i + b! -1 +loop  #buf +! mark ;
+: (make-space) ( b u -- u ) swap #buf @ 1- do
+  i b@ over i + b! -1 +loop ;
+: make-space ( b u -- ) dup has-space
+  over #buf @ < if (make-space) else nip then
+  #buf +! mark ;
 : buf-rest ( b -- b u ) #buf @ over - ;
 : delete-range ( b u -- ) dup >r  over + swap buf-rest
   (buf) fs-cmove  r> negate #buf +! mark ;
