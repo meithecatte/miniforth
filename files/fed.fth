@@ -267,8 +267,9 @@ variable is-linewise
   (buf) fs-cmove  r> negate #buf +! mark ;
 
 ( insert mode )
+: (insert-char) ( c -- ) >pos dup 1 make-space b! ;
 : insert-char keypress lobyte dup printable? if
-  >pos dup 1 make-space b! right else drop unbound then ;
+  (insert-char) right else drop unbound then ;
 keymap insert insert-char
 : insert-modeline ." -- INSERT --" ;
 : insert-mode ['] insert-modeline is modeline
@@ -282,14 +283,15 @@ keymap insert insert-char
   >> #bs bind insert
 : delete-after ( -- ) >pos 1 delete-range ensure-eol ;
   >> char x bind normal
-: enter ( -- ) >pos dup 1 make-space #lf swap b! down lbegin ;
+: enter ( -- ) #lf (insert-char) down lbegin ;
   >> #cr bind insert
 
 ( ways of entering insert mode )
 : prepend    lbegin insert-mode ; >> char I bind normal
 : append-lend  lend insert-mode ; >> char A bind normal
 : append      right insert-mode ; >> char a bind normal
-: insert-above  lbegin enter up insert-mode ; >> char O bind normal
+: insert-above  lbegin #lf (insert-char) insert-mode ;
+  >> char O bind normal
 : insert-below  lend enter insert-mode ; >> char o bind normal
 
 ( user-facing commands )
