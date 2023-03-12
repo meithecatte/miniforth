@@ -163,6 +163,13 @@ t{ in al $69 # #-> E4 69 }t
 t{ in ax $69 # #-> E5 69 }t
 t{ in eax $69 # #-> 66 E5 69 }t
 
+t{ out dx al #-> EE }t
+t{ out dx ax #-> EF }t
+t{ out dx eax #-> 66 EF }t
+t{ out $69 # al #-> E6 69 }t
+t{ out $69 # ax #-> E7 69 }t
+t{ out $69 # eax #-> 66 E7 69 }t
+
 32bit on
 t{ in al dx #-> EC }t
 t{ in ax dx #-> 66 ED }t
@@ -170,6 +177,13 @@ t{ in eax dx #-> ED }t
 t{ in al $69 # #-> E4 69 }t
 t{ in ax $69 # #-> 66 E5 69 }t
 t{ in eax $69 # #-> E5 69 }t
+
+t{ out dx al #-> EE }t
+t{ out dx ax #-> 66 EF }t
+t{ out dx eax #-> EF }t
+t{ out $69 # al #-> E6 69 }t
+t{ out $69 # ax #-> 66 E7 69 }t
+t{ out $69 # eax #-> E7 69 }t
 
 ' c, is db
 previous
