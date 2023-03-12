@@ -173,7 +173,7 @@ defer modeline
 : handle-key  key to keypress  ['] current-keymap catch
   dup if status red execute end-status else drop then ;
 : modeline?  need-status @ if status modeline end-status then ;
-: edit-loop  decimal begin render handle-key modeline? again ;
+: edit-loop  decimal begin render handle-key ensure-eol modeline? again ;
 : quit-editor  clrscr quit ; >> char Q bind normal
 
 ( modeline )
@@ -281,7 +281,7 @@ keymap insert insert-char
   1- 1 delete-range else drop then ;
   >> char X bind normal
   >> #bs bind insert
-: delete-after ( -- ) >pos 1 delete-range ensure-eol ;
+: delete-after ( -- ) >pos 1 delete-range ;
   >> char x bind normal
 : enter ( -- ) #lf (insert-char) down lbegin ;
   >> #cr bind insert
@@ -328,7 +328,7 @@ variable paste-linewise
     row @ 1+ >line
   else
     >pos 1+
-  then paste-at ensure-eol ;
+  then paste-at ;
   >> char p bind normal
 
 ( turn a byte position into row,col again )
