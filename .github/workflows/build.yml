@@ -17,7 +17,7 @@ jobs:
       - run: python3 scripts/name_release.py
         id: name_release
       - name: Generate changelog
-        run: git log --format='* %B' $(git describe --tags --abbrev=0).. > changelog.txt
+        run: git log --reverse --format='* %B' $(git describe --tags --abbrev=0).. > changelog.txt
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.name_release.outputs.release_name }}
