@@ -45,6 +45,14 @@ variable saved-rp
   sp@ cell+ saved-sp !
   rp@ saved-rp !
   undirty >alter (switch) ;
+: sw  switch ;
 
 ( to make load work outside of alter 0 )
 :noname  dup blk !  600 read-block  0 a00 c!  600 >in ! ; is load
+
+: mk-alters ( -- )
+  ( mk-alter behaves kinda like UNIX fork, so... )
+  2 begin dup 7 <= ds@ 0= and while dup mk-alter 1+ repeat drop
+  ds@ 2000 = if s" fed.fth" exec then ;
+
+mk-alters
