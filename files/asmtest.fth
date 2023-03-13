@@ -1,4 +1,6 @@
 ( assembly tests )
+s" test.fth" require Tester
+s" asm32.fth" require Assembler
 create buf $10 allot
 variable bufpos
 buf $10 + constant bufend

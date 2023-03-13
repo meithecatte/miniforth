@@ -206,7 +206,9 @@ variable src-fid    2variable src-fpos
   2r> src-fpos 2!  r> src-fid ! ;
 : exec ( fname. -- ) 0. 2swap (exec) ;
                                                              -->
-( filesystem -- remount )
+( filesystem -- require mount )
+: require ( s u "word" -- )
+  #bl token find 0= if exec else 2drop then ;
 : mount ( -- )
   load-ptable  0 part-start lba0 2!
   0 freebits bread  0 cur-fid ! ;
