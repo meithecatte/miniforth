@@ -87,6 +87,7 @@ t{ mov byte 4 [ebp+#] $69 # #-> C6 45 04 69 }t
 t{ mov byte 123 [esi+#] $69 # #-> C6 86 23 01 00 00 69 }t
 t{ mov word [esi] $2137 # #-> 66 C7 06 37 21 }t
 t{ mov dword [esi] $deadbeef. .# #-> C7 06 EF BE AD DE }t
+t{ mov byte $abcde. [.#] 10 # #-> C6 05 DE BC 0A 00 10 }t
 
 32bit off
 t{ mov al cl #-> 88 C8 }t
@@ -158,6 +159,19 @@ t{ mov cr2 esi #-> 0F 22 D6 }t
 t{ mov edi cr4 #-> 0F 20 E7 }t
 
 32bit off
+t{ mov si cs #-> 8C CE }t
+t{ mov edi ds #-> 66 8C DF }t
+( how-wide is too dumb for these, let's skip it )
+( t{ mov [bx] ss #-> 8C 17 }t         )
+( t{ mov [ecx] es #-> 67 8C 01 }t     )
+
+32bit on
+t{ mov si cs #-> 66 8C CE }t
+t{ mov edi ds #-> 8C DF }t
+( t{ mov [bx] ss #-> 67 8C 17 }t      )
+( t{ mov [ecx] es #-> 8C 01 }t        )
+
+32bit off
 t{ in al dx #-> EC }t
 t{ in ax dx #-> ED }t
 t{ in eax dx #-> 66 ED }t
@@ -186,6 +200,12 @@ t{ out dx eax #-> EF }t
 t{ out $69 # al #-> E6 69 }t
 t{ out $69 # ax #-> 66 E7 69 }t
 t{ out $69 # eax #-> E7 69 }t
+
+32bit off
+t{ jmpf $1234 # $5678 # #-> EA 78 56 34 12 }t
+
+32bit on
+t{ jmpf $08 # $deadbeef. .# #-> EA EF BE AD DE 08 00 }t
 
 ' c, is db
 previous

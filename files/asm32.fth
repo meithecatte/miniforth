@@ -26,6 +26,7 @@ constant oper-size
 5 constant optype-[r32]
 6 constant optype-[addr]
 7 constant optype-cr
+8 constant optype-sr
 
 ( stores the data width selected by the user with byte/word/dword )
 variable instr-wide
@@ -84,7 +85,8 @@ exception end-exception not-enough-opers
 : v>ud all-dnums @ invert if 0 then ;
 : .# ( imm. -- ) 0 optype-imm oper, ;
 : # ( imm -- ) v>ud .# ;
-: [#] ( imm -- ) v>ud 0 optype-[addr] oper, ;
+: [.#] ( imm -- ) 0 optype-[addr] oper, ;
+: [#] ( imm. -- ) v>ud [.#] ;
 : reg: ( r t -- r t ) create 2, does> 2@ 0. 2swap oper, ;
 : regs: ( r t n -- ) 0 ?do 2dup reg: >r 1+ r> loop 2drop ;
 : disp: ( r t -- r t ) create 2, does> >r v>d r> 2@ oper, ;
@@ -102,6 +104,7 @@ exception end-exception not-enough-opers
 4 optype-[r32] 4 disps: [esp+#] [ebp+#] [esi+#] [edi+#]
 0 optype-cr reg: cr0 
 2 optype-cr 3 regs: cr2 cr3 cr4
+0 optype-sr 6 regs: es cs ss ds fs gs
 
 : reg-op? ( nth -- t|f ) type@ optype-r8 optype-r32 1+ within ;
 : mem-op? ( nth -- t|f ) type@ optype-[r16] optype-[addr] 1+ within ;
@@ -298,11 +301,22 @@ exception end-exception bad-operands
 0 operand lodsd  data32 $AD db ;
 0 operand cli  $FA db ;
 0 operand sti  $FB db ;
+0 operand retf $CB db ;
 1 operand lgdt  0 mem-op? or-bad-operands
   0 mod-r/m-size  $0F db $01 db 0 2 oper-reg ;
 1 operand jmp   must-wide  0 mod-r/m-size  $FF db 0 4 oper-reg ;
 1 operand push  must-wide  0 $50 reg-offset ;
 1 operand pop   must-wide  0 $58 reg-offset ;
+2 operand jmpf
+  0 type@ optype-imm = or-bad-operands
+  1 type@ optype-imm = or-bad-operands
+  EA db
+  32bit @ if
+    1 disp@ dd
+  else
+    1 disp@ d>s dw
+  then
+  0 disp@ d>s dw ;
 
 2 operand mov
   1 type@ optype-imm = if
@@ -321,13 +335,23 @@ exception end-exception bad-operands
   else
     0 type@ optype-r32 = 1 type@ optype-cr = and if
       $0F db $20 db 0 1 spec@ oper-reg
-    else
-      0 type@ optype-cr = 1 type@ optype-r32 = and if
-        $0F db $22 db 1 0 spec@ oper-reg
-      else
-        $88 op-wideflag op-dir-modrm
-      then
-    then
+    exit then
+
+    0 type@ optype-cr = 1 type@ optype-r32 = and if
+      $0F db $22 db 1 0 spec@ oper-reg
+    exit then
+
+    1 type@ optype-sr = if
+      must-wide 0 mod-r/m-size
+      $8C db 0 1 spec@ oper-reg
+    exit then
+
+    0 type@ optype-sr = if
+      must-wide 1 mod-r/m-size
+      $8E db 1 0 spec@ oper-reg
+    exit then
+
+    $88 op-wideflag op-dir-modrm
   then ;
 
 : aluop
