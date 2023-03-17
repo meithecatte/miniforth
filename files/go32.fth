@@ -3,7 +3,7 @@
 ( Section 10.9.1. "Switching to Protected Mode" )
 s" asm32.fth" require Assembler
 
-ds@ 0= #-12 and >in +! alter-0-only
+ds@ 0= #12 and >in +! alter-0-only
 
 ( this address happens to be safe so :p         )
 $A20 constant victim
