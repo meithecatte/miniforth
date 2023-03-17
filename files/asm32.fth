@@ -419,8 +419,13 @@ exception end-exception bad-operands
 2 operand out 0 $E6 1 i/o-op ;
 
 : ;code ( -- )
-  lodsw
-  jmp ax
+  32bit @ if
+    lodsd
+    jmp eax
+  else
+    lodsw
+    jmp ax
+  then
   previous ;
 Forth definitions
 : :code ( -- ) :code Assembler ;
