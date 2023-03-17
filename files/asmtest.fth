@@ -151,6 +151,17 @@ t{ xor ax ax #-> 31 C0 }t
 t{ sub ax [si] #-> 2B 04 }t
 t{ sbb 7 [#] cl #-> 18 0E 07 00 }t
 
+32bit off
+t{ ror dword [edx] 7 # #-> 67 66 C1 0A 07 }t
+t{ shl cx cl #-> D3 E1 }t
+t{ rcl si 1 # #-> D1 D6 }t
+
+32bit on
+t{ ror dword [edx] 7 # #-> C1 0A 07 }t
+t{ shl cx cl #-> 66 D3 E1 }t
+t{ rcl si 1 # #-> 66 D1 D6 }t
+
+32bit off
 t{ mov cr2 esi #-> 0F 22 D6 }t
 t{ mov edi cr4 #-> 0F 20 E7 }t
 

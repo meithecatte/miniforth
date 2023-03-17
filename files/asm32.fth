@@ -17,6 +17,7 @@ variable what-modrm
 0 cfield: oper.type
   cfield: oper.spec ( e.g. specific register )
   2field: oper.disp
+  cfield: oper.wide-ignore
 constant oper-size
 
 ( oper.type can contain: )
@@ -53,13 +54,16 @@ variable instr-wide
 create opers  2 oper-size u* allot
 : nth-oper ( u -- ptr ) oper-size u* opers + ;
 : oper! ( disp. spec type u -- )
-  tuck oper.type c!
-  tuck oper.spec c!
-       oper.disp 2! ;
+  >r
+  r@ oper.type c!
+  r@ oper.spec c!
+  r@ oper.disp 2!
+  0 r> oper.wide-ignore c! ;
 
 : type@ ( oper# -- u ) nth-oper oper.type c@ ;
 : spec@ ( oper# -- u ) nth-oper oper.spec c@ ;
 : disp@ ( oper# -- u. ) nth-oper oper.disp 2@ ;
+: wide-ignore ( oper# -- ) nth-oper oper.wide-ignore 1 swap c! ;
 
 exception end-exception too-many-opers
 : oper, ( disp. spec type -- )
@@ -126,6 +130,10 @@ exception end-exception not-enough-opers
 
 ( inferring the data width )
 : op-wide ( nth -- u )
+  dup nth-oper oper.wide-ignore c@ if
+    drop wide-unk 
+  exit then
+
   dup reg-op? if
     type@
   else
@@ -228,6 +236,7 @@ exception end-exception bad-operands
       3 lshift $06 + db
       nth-oper oper.disp @ dw
     endof
+    ['] bad-operands throw
   endcase ;
 : oper-reg-32bit ( oper# reg -- )
   over type@ case
@@ -391,6 +400,33 @@ exception end-exception bad-operands
 2 operand xor  6 aluop ;
 2 operand cmp  7 aluop ;
 
+: shiftop
+  0 mod-r/m-size
+  1 wide-ignore
+  1 type@ optype-imm = if
+    1 disp@ 1. d= if
+      $D0 op-wideflag db
+      0 swap oper-reg
+    else
+      $C0 op-wideflag db
+      0 swap oper-reg
+      1 nth-oper oper.disp c@ db
+    then
+  else
+    1 type@ optype-r8 = or-bad-operands
+    1 spec@ 1 = ( cl ) or-bad-operands
+    $D2 op-wideflag db
+    0 swap oper-reg
+  then ;
+
+2 operand rol  0 shiftop ;
+2 operand ror  1 shiftop ;
+2 operand rcl  2 shiftop ;
+2 operand rcr  3 shiftop ;
+2 operand shl  4 shiftop ;
+2 operand shr  5 shiftop ;
+2 operand sar  7 shiftop ;
+
 ( I/O instructions )
 ( encoding: $E4 [1110d1ow] )
 ( w - wide )
@@ -406,7 +442,7 @@ exception end-exception bad-operands
   endcase ( port-oper base )
   over type@ case
     optype-r16 of
-      swap spec@ 2 = or-bad-operands ( dx )
+      swap spec@ 2 = ( dx ) or-bad-operands
       8 + db
     endof
     optype-imm of

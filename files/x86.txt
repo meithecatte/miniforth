@@ -62,6 +62,20 @@ ops:
 6 xor
 7 cmp
 
+shift instructions:
+C0+[wide]/[op] - r/m, imm
+D0+[wide]/[op] - r/m, 1
+D2+[wide]/[op] - r/m, cl
+ops:
+0 rol
+1 ror
+2 rcl
+3 rcr
+4 shl
+5 shr
+6 -
+7 sar
+
 01000reg  inc (wide)
 01001reg  dec (wide)
 01010reg  push
