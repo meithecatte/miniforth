@@ -11,6 +11,8 @@ variable 32bit  32bit off
 variable opcode  0 opcode !
 variable want-opers
 variable have-opers
+( stores the ModR/M size the address prefix has chosen, if any )
+variable what-modrm
 
 0 cfield: oper.type
   cfield: oper.spec ( e.g. specific register )
@@ -39,7 +41,8 @@ variable instr-wide
 : reset-asm ( -- )
   0 opcode !
   0 want-opers !
-  0 instr-wide ! ;
+  0 instr-wide !
+  0 what-modrm ! ;
 
 : instr-done ( -- )
   opcode @ catch
@@ -116,11 +119,10 @@ exception end-exception not-enough-opers
 
 ( should the ModR/M be 32-bit? this is not the same as 32bit itself, )
 ( as the address size prefix overrides this )
-variable 32bit-modrm
 : data16 ( -- ) 32bit @        if prefix-datasize then ;
 : data32 ( -- ) 32bit @ invert if prefix-datasize then ;
-: addr16 ( -- ) 32bit-modrm off  32bit @        if prefix-addrsize then ;
-: addr32 ( -- ) 32bit-modrm on   32bit @ invert if prefix-addrsize then ;
+: addr16 ( -- ) 1 what-modrm ! 32bit @        if prefix-addrsize then ;
+: addr32 ( -- ) 2 what-modrm ! 32bit @ invert if prefix-addrsize then ;
 
 ( inferring the data width )
 : op-wide ( nth -- u )
@@ -254,7 +256,11 @@ exception end-exception bad-operands
   over reg-op? if
     3 lshift swap spec@ + $c0 + db
   else
-    32bit-modrm @ if oper-reg-32bit else oper-reg-16bit then
+    what-modrm @ case
+      1 of oper-reg-16bit endof
+      2 of oper-reg-32bit endof
+      cr ." what-modrm not set "
+    endcase
   then ;
 
 ( opcode with dirflag in bit 1 and modrm )
