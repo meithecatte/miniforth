@@ -447,6 +447,8 @@ exception end-exception hold-area-exhausted
 
                                                              -->
 ( does> / structures / value )
+( the result of create looks like: [call docol] lit __ exit )
+( we overwrite the exit with the stuff after does> )
 : >exit ( nt -- @exit ) >xt [ 3 2 cells + ] literal + ;
 : >body ( xt -- body ) [ 3 3 cells + ] literal + ;
 : does, here 6 + si movw-ir, next, ;
@@ -459,9 +461,7 @@ exception end-exception hold-area-exhausted
 
 : value  create 0 , does> @ ;
 : to  ' >body  compiling? if postpone{ literal ! }
-  else ! then ; immediate
-
-                                                             -->
+  else ! then ; immediate                                    -->
 ( counted loops )
 variable leaves                 0 rpick: i   2 rpick: j
 : subw-sr, 83 c, 5 rm-r, c, ;   : unloop, 2 cells di subw-sr, ;
