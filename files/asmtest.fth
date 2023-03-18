@@ -218,5 +218,23 @@ t{ jmpf $1234 # $5678 # #-> EA 78 56 34 12 }t
 32bit on
 t{ jmpf $08 # $deadbeef. .# #-> EA EF BE AD DE 08 00 }t
 
+32bit off
+t{ movzx cx dh  #-> 0F B6 CE }t
+t{ movzx esp cl #-> 66 0F B6 E1 }t
+t{ movzx esi bx #-> 66 0F B7 F3 }t
+t{ movzx dx byte [bx]   #-> 0F B6 17 }t
+t{ movzx dx byte [esi]  #-> 67 0F B6 16 }t
+t{ movzx edx word [bx]  #-> 66 0F B7 17 }t
+t{ movzx edx word [esi] #-> 67 66 0F B7 16 }t
+
+32bit on
+t{ movzx cx dh  #-> 66 0F B6 CE }t
+t{ movzx esp cl #-> 0F B6 E1 }t
+t{ movzx esi bx #-> 0F B7 F3 }t
+t{ movzx dx byte [bx]   #-> 67 66 0F B6 17 }t
+t{ movzx dx byte [esi]  #-> 66 0F B6 16 }t
+t{ movzx edx word [bx]  #-> 67 0F B7 17 }t
+t{ movzx edx word [esi] #-> 0F B7 16 }t
+
 ' c, is db
 previous

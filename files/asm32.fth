@@ -369,6 +369,21 @@ exception end-exception bad-operands
     $88 op-wideflag op-dir-modrm
   then ;
 
+2 operand movzx
+  0 wide-ignore
+  1 mod-r/m-size
+  0 type@ case
+    optype-r16 of data16 endof
+    optype-r32 of data32 endof
+    ['] bad-operands throw
+  endcase
+  how-wide case
+    wide8  of $0F db $B6 db endof
+    wide16 of $0F db $B7 db endof
+    ['] bad-operands throw
+  endcase
+  1 0 spec@ oper-reg ;
+
 : aluop
   1 type@ optype-imm = if
     0 reg-op? 0 spec@ 0= and if
