@@ -321,6 +321,8 @@ variable paste-linewise
   >> defop delete d bind normal
 : (change) (delete) is-linewise @ if insert-above else insert-mode then ;
   >> defop change c bind normal
+: delete-lend  delete lend ; >> char D bind normal
+: change-lend  change lend ; >> char C bind normal
 
 : paste-at ( b -- ) dup #paste @ make-space
   #paste @ 0 ?do i pb@ over i + b! loop drop ;
