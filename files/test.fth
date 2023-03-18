@@ -15,16 +15,9 @@ variable depth0
   dup 0< ['] test-underflow and throw ;
 : to-depth0 ( -- ) rel-depth 0 ?do drop loop ;
 
-: seek ( s -- s ) begin dup c@ while 1+ repeat ;
-: nul>count ( s -- s u ) dup seek over - ;
-( HACK: this works for keyboard and file input; there's no generic    )
-( "beginning of input" variable - only >in, which stores the current  )
-( position )
-: input-line ( -- s u ) $500 nul>count ;
-
 : report-failure ( -- ) cr
   ." test failed" cr
-  input-line type cr
+  .input
   ." expected: "
   rel-depth if rel-depth 1- 0 swap do
     i pick .

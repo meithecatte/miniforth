@@ -375,9 +375,9 @@ create no-->  false ,   : --> no--> @ invert if --> then ;
 : prompt compiling? if ."  compiled" else ."  ok" then cr ;
 : repl begin refill interpret prompt again ;
 :noname 1 st c! ; is [          :noname 0 st c! ; is ]
-rp@ constant r0
+rp@ constant r0                 : handle-exn  cr execute ;
 : quit begin postpone [  r0 rp!  10 base !
-  ['] repl catch  cr execute again ;
+  ['] repl catch  handle-exn again ;
 :noname ; is skip-space
 : list cr list ;
 quit            ' refill-kbd is refill                       -->
@@ -612,8 +612,24 @@ $1B constant #esc
 :code fs-cmove bx cx movw-rr,   si ax movw-rr, di dx movw-rr,
   di pop, si pop,    push-es,  push-fs, pop-es,
   fs> rep, movsb,    pop-es, ax si movw-rr, dx di movw-rr,
-  bx pop,  next,
+  bx pop,  next,                                             -->
 
+
+
+
+
+
+
+
+
+( show input position on exception )
+: seek ( u -- u ) begin dup c@ while 1+ repeat ;
+: nul>count ( s -- s len ) dup seek over - ;
+: inbuf? ( -- t|f ) >in @ 500 600 within ;
+: .sofar ( -- ) yellow 500 >in @ over - type ;
+: .rest ( -- ) noclr >in @ nul>count type ;
+: .input ( -- ) inbuf? if .sofar .rest cr then ;
+:noname  cr .input execute ; is handle-exn
 
 
 
