@@ -142,7 +142,10 @@ variable need-status
   drop fill-rest  need-status on ;
 
 ( make sure the cursor isn't above the screen )
-: fixtop ( -- ) fixpos row @ topline @ < if row @ top! then ;
+( when it is below, try to avoid scrolling for a long time )
+: fixtop-above ( -- ) row @ topline @ < if row @ top! then ;
+: fixtop-below ( -- ) topline @ #25 + row @ < if row @ #25 - top! then ;
+: fixtop ( -- ) fixpos  fixtop-above  fixtop-below ;
 
 ( if there's no cursor, scroll down until there is )
 : render   fixtop begin render has-curpos @ invert while
