@@ -51,13 +51,13 @@ exception end-exception a20-locked
 
 ( GDT )
 : entries 8 u* ;
-create gdt 3 entries allot
+create gdt 5 entries allot
 
 variable access
 $80 constant PRESENT
 $10 constant ~SPECIAL ( this bit is 0 in some shit like TSS )
 $08 constant EXECUTABLE
-$02 constant R/W
+$02 constant R/W      ( R for code segments, W for data segments )
 
 variable flags
 $80 constant GRANULARITY
@@ -78,9 +78,16 @@ PRESENT ~SPECIAL or R/W or EXECUTABLE or access !
 PRESENT ~SPECIAL or R/W or access !
 10 entry 32bit-ds
 
+GRANULARITY flags !
+PRESENT ~SPECIAL or R/W or EXECUTABLE or access !
+18 entry 16bit-cs
+
+PRESENT ~SPECIAL or R/W or access !
+20 entry 16bit-ds
+
 ( GDTR )
 gdt pos !
-3 entries 1- pos, ( size )
+5 entries 1- pos, ( size )
 gdt pos, 0 pos, ( address )
 
 :code lgdt
@@ -91,23 +98,48 @@ gdt pos, 0 pos, ( address )
 lgdt
 a20
 
-( pmode transition )
+( pmode transitions )
+:code finish-pmode-exit
+  xor ax ax
+  mov ds ax
+  mov es ax
+  mov ss ax
+;code
+
+:code do-pmode-exit
+  mov eax cr0
+  and al $FE #
+  mov cr0 eax
+  jmpf 0 # ' finish-pmode-exit #
+previous
+
+32bit on
+
 :code pmode-entry
-  32bit on
   mov eax 32bit-ds #
   mov ds eax
   mov es eax
   mov ss eax
-  mov byte $B8000. [.#] 2 #
-  EB db FE db
-  32bit off
-;code
+  movzx esp sp
+  ret
+previous
+
+:code pmode-exit
+  mov eax 16bit-ds #
+  mov ds eax
+  mov es eax
+  mov ss eax
+  jmpf 16bit-cs # ' do-pmode-exit #
+previous
+
+32bit off
 
 :code (go32)
+  push bx
   mov eax cr0
   or al 1 #
   mov cr0 eax
   jmpf 32bit-cs # ' pmode-entry #
 ;code
 
-: go32 ( -- ) cli nmi-off (go32) ;
+: go32 ( -- ) cli nmi-off (go32) nmi-on sti ;

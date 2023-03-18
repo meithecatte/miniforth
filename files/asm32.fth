@@ -1,7 +1,10 @@
 ( assembler with more conventional syntax, targeting 16 and 32 bits )
+
+( we want to be able to toggle 32bit outside of :code ;code )
+variable 32bit  32bit off
+
 vocabulary Assembler
 Assembler definitions
-variable 32bit  32bit off
 
 : db ( b -- ) c, ; ( easily overrideable )
 : dw ( u -- ) dup lobyte db hibyte db ;
@@ -316,6 +319,7 @@ exception end-exception bad-operands
 0 operand lodsd  data32 $AD db ;
 0 operand cli  $FA db ;
 0 operand sti  $FB db ;
+0 operand ret  $C3 db ;
 0 operand retf $CB db ;
 1 operand lgdt  0 mem-op? or-bad-operands
   0 mod-r/m-size  $0F db $01 db 0 2 oper-reg ;
