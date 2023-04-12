@@ -142,6 +142,31 @@ top of Miniforth and extend its capabilities.
    - Changes are saved to disk whenever you use `run` or open a different block with `edit`
      or the <kbd>[</kbd>/<kbd>]</kbd> keybinds. You can also trigger this
      manually with `save`.
+ - In `filesystem.fth` (`50 load`), there's support for a simple filesystem,
+   which is currently hardcoded to be in the first partition listed in the MBR.
+   Some limits are lower than you might expect, but for the purposes I'm
+   interested in, they shouldn't become a problem:
+   - Partition size: up to 128 MiB
+   - File size: 8184 KiB
+
+   One file can be open at a time. Directories are supported, but there isn't any
+   path parsing. For user-level file manipulation:
+   - `ls ( -- )` will print the list of files in the current directory.
+   - `chdir ( name len -- )` will enter a subdirectory.
+   - `.. ( -- )` will go back to the parent directory.
+   - `mkdir ( name len -- )` will create a directory.
+   - `exec ( name len -- )` will execute the contents of a file as Forth.
+   - `rm ( name len -- )` will delete a file.
+   - `rmdir ( name len -- )` will delete an empty directory. Recursive delete
+     is not implemented yet.
+   For writing programs involving files:
+   - `fopen ( name len -- )` will open an existing file, or throw an exception
+     if it doesn't exist.
+   - `fopen? ( name len -- t|f )` will instead return a boolean indicating
+     whether the file could be found.
+   - `fcreate ( name len -- )` will create a new file, or if it already exists,
+     truncate it to 0 bytes. The new file is opened.
+   - `fread ( buf len -- )` will read data starting at the current position
 
 All this code was originally developed within Miniforth itself, which meant it was
 stored within a disk image — a format that's not very friendly to tooling like
@@ -170,7 +195,8 @@ If a feature is strongly desirable, potential tradeoffs include:
    own primitives later anyway).
  - 6 bytes: Remove the `+` word (with the expectation that the user will define `: negate 0 swap - ; : + negate - ;`
    - Note that bootstrapping with neither `+` nor `-` would be, to put it mildly, quite hard.
- - 12 bytes: Remove the `emit` word.
+ - 12 bytes: Remove the `emit` word - we need loops to make good use of it, and
+   by that point we can assemble it ourselves.
  - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This
    essentially changes the API with each edit (NOTE: it's 9 bytes because this makes it
    beneficial to keep `>IN` in the literal field of an instruction).
