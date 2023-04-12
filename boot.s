@@ -322,11 +322,9 @@ defcode EMIT, "emit"
 defcode UDOT, "u."
     ; the hexdigit conversion algo below turns 0x89 into a space.
     ; 0x89 itself doesn't fit in a signed 8-bit immediate that
-    ; a two-byte instruction uses, but we don't care about the
+    ; a two-byte push instruction uses, but we don't care about the
     ; high 8 bits of the value
-    ; this expression tricks yasm into emitting this without
-    ; a warning
-    push byte -((-0x89) & 0xff)
+    push byte 0x89 - 0x100
 .split:
     mov al, bl
     and al, 0x0f
