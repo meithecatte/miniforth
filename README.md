@@ -193,8 +193,8 @@ If a feature is strongly desirable, potential tradeoffs include:
 
  - 12 bytes: Remove the `emit` word - we need loops to make good use of it, and
    by that point we can assemble it ourselves.
- - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This
-   essentially changes the API with each edit (NOTE: it's 9 bytes because this makes it
+ - 7 bytes: Don't push the addresses of variables kept by self-modifying code. This
+   essentially changes the API with each edit (NOTE: it's 7 bytes because this makes it
    beneficial to keep `>IN` in the literal field of an instruction).
  - ?? bytes: Instead of storing the names of the primitives, let the user pick their own
    names on boot. This would take very little new code — the decompressor would simply have

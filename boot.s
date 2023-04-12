@@ -107,6 +107,7 @@ ReadLine:
     int 0x16
     cmp al, 0x08
     jne short .write
+    ; backspace
     cmp di, InputBuf ; underflow check
     je short .loop
     dec di
