@@ -178,8 +178,8 @@ Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **480** bytes are used,
-leaving 30 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **476** bytes are used,
+leaving 34 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!
@@ -188,9 +188,6 @@ Byte saving leaderboard:
 
 If a feature is strongly desirable, potential tradeoffs include:
 
- - ?? bytes: Don't expose the `BASE` variable, hardcode hexadecimal — as it
-   turns out, it is not that useful. The current bootstrap doesn't make use of
-   `BASE` in the initial interpreter.
  - 12 bytes: Remove the `emit` word - we need loops to make good use of it, and
    by that point we can assemble it ourselves.
  - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This

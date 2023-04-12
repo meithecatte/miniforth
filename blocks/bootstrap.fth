@@ -3,7 +3,7 @@
 : here dp @ ;  : cell+ 2 + ;  : cell- 2 - ;  : cells dup + ;
 : +! dup >r @ + r> ! ;  : allot dp +! ;  : c, here c! 1 allot ;
 : , here ! 2 allot ;   : 'lit 0 [ here 4 - @ here 2 - ! ] ;
-: lit,  'lit , , ;   : disk# [ lit, ] ;   : base [ lit, ] ;
+: lit,  'lit , , ;   : disk# [ lit, ] ;
 : st [ lit, ] ;   : latest [ lit, ] ;   : [[ 1 st c! ;
 here 2 - @  : 'exit [ lit, ] ;          : create:  : [[ ;
 : create  create:  here 3 cells + lit,  'exit , ;
@@ -303,6 +303,7 @@ exception  str word:  end-exception unknown-word
     endcase then
   again ;                                                    -->
 ( >number )
+create base  10 ,
 : [within] char char 1+ postpone{ 2literal within } ; immediate
 : digit ( c -- f | v t ) dup [within] 0 9 if [char] 0 - else
   dup [within] A Z if [char] A - A + else
@@ -316,8 +317,7 @@ exception  str word:  end-exception unknown-word
 : >digits ( str -- str' ud' ) 0 0 2>r  begin dup while
   over c@  [char] . = if  1 /string  is-dnum on  else
   over c@  digit if s>d 2r> base @ ud*u d+ 2>r  1 /string else
-  2r> exit then then repeat 2r> ;
-                                                             -->
+  2r> exit then then repeat 2r> ;                            -->
 ( >number, continued )
 : sc@ ( str len -- str len c|0 ) dup if over c@ else 0 then ;
 : ?dup ( x -- x x | 0 ) dup if dup then ;

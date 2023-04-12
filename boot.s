@@ -57,7 +57,6 @@ SPECIAL_BYTE equ 0xff
     jmp 0:start
 stack:
     dw HERE
-    dw BASE
     dw STATE
     dw LATEST
 start:
@@ -222,10 +221,7 @@ ParseWord:
     sub al, "A" - ("0" &~0x20) - 10
 .digit_ok
     cbw
-    ; imul bx, bx, <BASE> but yasm insists on encoding the immediate in just one byte...
-    db 0x69, 0xdb
-BASE equ $
-    dw 16
+    shl bx, 4
     add bx, ax
     mov [InputPtr], si
     lodsb
@@ -326,7 +322,6 @@ defcode EMIT, "emit"
     pop bx
 
 defcode UDOT, "u."
-    xchg ax, bx
     ; the hexdigit conversion algo below turns 0x89 into a space.
     ; 0x89 itself doesn't fit in a signed 8-bit immediate that
     ; a two-byte instruction uses, but we don't care about the
@@ -335,10 +330,10 @@ defcode UDOT, "u."
     ; a warning
     push byte -((-0x89) & 0xff)
 .split:
-    xor dx, dx
-    div word[byte bp-BP_POS+BASE]
-    push dx
-    or ax, ax
+    mov al, bl
+    and al, 0x0f
+    push ax
+    shr bx, 4
     jnz .split
 .print:
     pop ax
