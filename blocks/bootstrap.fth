@@ -1,12 +1,12 @@
-: >in a02 ; : run >in ! ;       swap : dp 0 [ dup @ 2 - ! ] ;
+: >in a02 ; : run >in ! ;       swap : dp 0 | dup @ 2 - ! | ;
 : drop  dup -  - ;
 : negate  0 swap - ;            : +  negate - ;
 : here dp @ ;  : cell+ 2 + ;  : cell- 2 - ;  : cells dup + ;
 : +! dup >r @ + r> ! ;  : allot dp +! ;  : c, here c! 1 allot ;
-: , here ! 2 allot ;   : 'lit 0 [ here 4 - @ here 2 - ! ] ;
-: lit,  'lit , , ;   : disk# [ lit, ] ;
-: st [ lit, ] ;   : latest [ lit, ] ;   : [[ 1 st c! ;
-here 2 - @  : 'exit [ lit, ] ;          : create:  : [[ ;
+: , here ! 2 allot ;   : 'lit 0 | here 4 - @ here 2 - ! | ;
+: lit,  'lit , , ;   : disk# | lit, | ;
+: st | lit, | ;   : latest | lit, | ;   : [[ 1 st c! ;
+here 2 - @  : 'exit | lit, | ;          : create:  : [[ ;
 : create  create:  here 3 cells + lit,  'exit , ;
 : constant create: lit, 'exit , ;
 : variable create 1 cells allot ;
@@ -43,8 +43,8 @@ variable pos                    : pos, pos @ ! 2 pos +! ;
 : andw-rr, 23 c, rm-r, ;        : subw-rr, 2b c, rm-r, ;
 : xorw-rr, 33 c, rm-r, ;        : cmpw-rr, 3b c, rm-r, ;
 : compile r> dup cell+ >r @ , ;
-: immediate latest @ cell+ dup >r c@ 80 + r> c! ;            -->
-
+: immediate latest @ cell+ dup >r c@ 80 + r> c! ;
+: [  1 st c! ; immediate        : ]  0 st c! ;               -->
 
 : rep, F2 c, ;    : cld, FC c, ;    : std, FD c, ;
 : cmpsb, A6 c, ;  : cmpsw, A7 c, ;

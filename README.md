@@ -4,13 +4,16 @@
 The following standard words are available:
 
 ```
-- ! @ c! c@ dup swap emit u. >r r> [ ] : ; load
+- ! @ c! c@ dup swap emit u. >r r> : ; load
 ```
 
-Additionally, there is one non-standard word. `s: ( buf -- buf+len )` will copy the
-rest of the current input buffer to `buf`, and terminate it with a null byte. The address
-of said null byte will be pushed onto the stack. This is designed for saving the code being
-ran to later put it in a disk block, when no block editor is available yet.
+Additionally, there are two non-standard words.
+ - `|` switches between interpreting and compilation, performing the roles of
+   both `[` and `]`.
+ - `s: ( buf -- buf+len )` will copy the rest of the current input buffer to
+   `buf`, and terminate it with a null byte. The address of said null byte will
+   be pushed onto the stack. This is designed for saving the code being ran to
+   later put it in a disk block, when no block editor is available yet.
 
 The dictionary is case-sensitive. If a word is not found, it is converted into a number
 with no error checking. For example, `g` results in the decimal 16, extending
@@ -178,8 +181,8 @@ Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **469** bytes are used,
-leaving 41 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **464** bytes are used,
+leaving 46 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!

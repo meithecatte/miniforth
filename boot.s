@@ -384,11 +384,8 @@ defcode LINE, "s:" ; ( buf -- buf+len )
     dec si
     xchg si, [InputPtr]
 
-defcode LBRACK, "[", F_IMMEDIATE
-    inc byte[byte bp-BP_POS+STATE]
-
-defcode RBRACK, "]"
-    dec byte[byte bp-BP_POS+STATE]
+defcode SWITCH, "|", F_IMMEDIATE
+    xor byte[byte bp-BP_POS+STATE], 1
 
 defcode COLON, ":"
     pusha
@@ -409,12 +406,12 @@ defcode COLON, ":"
     stosw
     mov [byte bp-BP_POS+HERE], di
     popa
-    jmp short RBRACK
+    jmp short SWITCH
 
 defcode SEMI, ";", F_IMMEDIATE
     mov ax, EXIT
     call COMMA
-    jmp short LBRACK
+    jmp short SWITCH
 ; INVARIANT: last word in compressed block does not rely on having NEXT appended by
 ; decompressor
 CompressedEnd:
