@@ -278,10 +278,6 @@ EXIT:
     dec di
     mov si, [di]
 
-defcode PLUS, "+"
-    pop ax
-    add bx, ax
-
 defcode MINUS, "-"
     pop ax
     sub ax, bx

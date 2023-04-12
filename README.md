@@ -178,8 +178,8 @@ Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **486** bytes are used,
-leaving 24 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **480** bytes are used,
+leaving 30 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!
@@ -191,10 +191,6 @@ If a feature is strongly desirable, potential tradeoffs include:
  - ?? bytes: Don't expose the `BASE` variable, hardcode hexadecimal — as it
    turns out, it is not that useful. The current bootstrap doesn't make use of
    `BASE` in the initial interpreter.
- - 7 bytes: Remove the `-` word (with the expectation that the user will assemble their
-   own primitives later anyway).
- - 6 bytes: Remove the `+` word (with the expectation that the user will define `: negate 0 swap - ; : + negate - ;`
-   - Note that bootstrapping with neither `+` nor `-` would be, to put it mildly, quite hard.
  - 12 bytes: Remove the `emit` word - we need loops to make good use of it, and
    by that point we can assemble it ourselves.
  - 9 bytes: Don't push the addresses of variables kept by self-modifying code. This

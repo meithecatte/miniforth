@@ -1,4 +1,5 @@
 : >in a02 ; : run >in ! ;       swap : dp 0 [ dup @ 2 - ! ] ;
+: negate  0 swap - ;            : +  negate - ;
 : here dp @ ;  : cell+ 2 + ;  : cell- 2 - ;  : cells dup + ;
 : +! dup >r @ + r> ! ;  : allot dp +! ;  : c, here c! 1 allot ;
 : , here ! 2 allot ;   : 'lit 0 [ here 4 - @ here 2 - ! ] ;
@@ -13,7 +14,6 @@ create blk 1   ,
 : --> blk @ 1 + load ;
 : :code create: 0 3 - allot ;
 : 2*  dup + ; : 3shl 2* 2* 2* ;                              -->
-
 : ax 0 ;    : cx 1 ;    : dx 2 ;    : bx 3 ;
 : sp 4 ;    : bp 5 ;    : si 6 ;    : di 7 ;
 : al 0 ;    : cl 1 ;    : dl 2 ;    : bl 3 ;
@@ -133,7 +133,7 @@ variable sep                    : false  0 ;    : true  ffff ;
   ax push, bx push, cx push, dx bx movw-rr, next,
 :code pick  bx bx addw-rr,  sp bx addw-rr,
   [bx] bx movw-mr,  next,
-: literal lit, ; immediate      : negate  0 swap - ;
+: literal lit, ; immediate
 : within ( n lo hi -- f|t ) over - >r - r> u< ;
 : s8? ( n -- f|t ) FF80 80 within ;
 : +m-r, ( off m r -- ) 3shl + over s8? if 40 + c, c, else
