@@ -72,7 +72,7 @@ start:
     mov bp, BP_POS
     cld
 
-    mov si, CompressedData
+    mov si, bp ; BP_POS = CompressedData
     mov di, CompressedBegin
     mov cx, COMPRESSED_SIZE
 .decompress:
@@ -192,8 +192,6 @@ HERE equ $+1
 Return:
     ret
 
-BP_POS equ $
-
 ; returns
 ; DX = pointer to string
 ; CX = string length
@@ -249,6 +247,8 @@ DiskPacket:
 .buffer:
     ; rest is filled out at runtime, overwriting the compressed data,
     ; which isn't necessary anymore
+
+BP_POS equ $
 
 CompressedData:
     times COMPRESSED_SIZE db 0xcc
