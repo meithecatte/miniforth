@@ -4,7 +4,7 @@
 The following standard words are available:
 
 ```
-+ - ! @ c! c@ dup drop swap emit u. >r r> [ ] : ; load
+- ! @ c! c@ dup swap emit u. >r r> [ ] : ; load
 ```
 
 Additionally, there is one non-standard word. `s: ( buf -- buf+len )` will copy the
@@ -178,8 +178,8 @@ Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **476** bytes are used,
-leaving 34 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **469** bytes are used,
+leaving 41 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!

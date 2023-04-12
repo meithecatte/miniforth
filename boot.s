@@ -297,9 +297,6 @@ defcode CPOKE, "c!" ; ( ch addr -- )
 defcode DUP, "dup" ; ( a -- a a )
     push bx
 
-defcode DROP, "drop" ; ( a -- )
-    pop bx
-
 defcode SWAP, "swap" ; ( a b -- b a )
     pop ax
     push bx

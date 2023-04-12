@@ -1,4 +1,5 @@
 : >in a02 ; : run >in ! ;       swap : dp 0 [ dup @ 2 - ! ] ;
+: drop  dup -  - ;
 : negate  0 swap - ;            : +  negate - ;
 : here dp @ ;  : cell+ 2 + ;  : cell- 2 - ;  : cells dup + ;
 : +! dup >r @ + r> ! ;  : allot dp +! ;  : c, here c! 1 allot ;
@@ -11,9 +12,8 @@ here 2 - @  : 'exit [ lit, ] ;          : create:  : [[ ;
 : variable create 1 cells allot ;
 create blk 1   ,
 : load' load ;  : load  dup blk !  load' ;
-: --> blk @ 1 + load ;
-: :code create: 0 3 - allot ;
-: 2*  dup + ; : 3shl 2* 2* 2* ;                              -->
+: --> blk @ 1 + load ;          : 2*  dup + ; : 3shl 2* 2* 2* ;
+: :code create: 0 3 - allot ;                                -->
 : ax 0 ;    : cx 1 ;    : dx 2 ;    : bx 3 ;
 : sp 4 ;    : bp 5 ;    : si 6 ;    : di 7 ;
 : al 0 ;    : cl 1 ;    : dl 2 ;    : bl 3 ;
