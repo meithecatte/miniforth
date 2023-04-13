@@ -119,13 +119,17 @@ ReadLine:
     db 0x3c          ; mask next instruction
 .write:
     stosb
-    call PutChar
+
+    xor bx, bx
+    mov ah, 0x0e
+    int 0x10
+
     cmp al, 0x0d
     jne short .loop
 .enter:
     mov al, 0x0a
     int 0x10
-    mov [di-1], bl ; write the null terminator by using the BX = 0 from PutChar
+    mov [di-1], bl ; BX = 0 at this point
     pop bx
 InterpreterLoopSaveBX:
     push bx
@@ -231,12 +235,6 @@ ParseWord:
     lodsb
     jmp short .takeloop
 
-PutChar:
-    xor bx, bx
-    mov ah, 0x0e
-    int 0x10
-    ret
-
 DiskPacket:
     db 0x10, 0
 .count:
@@ -311,11 +309,6 @@ defcode FROM_R, "r>"
     push bx
     mov bx, [di]
 
-defcode EMIT, "emit"
-    xchg bx, ax
-    call PutChar
-    pop bx
-
 defcode UDOT, "u."
     ; the hexdigit conversion algo below turns 0x89 into a space.
     ; 0x89 itself doesn't fit in a signed 8-bit immediate that
@@ -336,7 +329,10 @@ defcode UDOT, "u."
     adc al, 0x40
     daa
 
-    call PutChar
+    xor bx, bx
+    mov ah, 0x0e
+    int 0x10
+
     cmp al, " "
     jne short .print
     pop bx

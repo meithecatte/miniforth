@@ -47,8 +47,7 @@ variable pos                    : pos, pos @ ! 2 pos +! ;
 : [  1 st c! ; immediate        : ]  0 st c! ;               -->
 
 : rep, F2 c, ;    : cld, FC c, ;    : std, FD c, ;
-: cmpsb, A6 c, ;  : cmpsw, A7 c, ;
-: notw-r, F7 c, 2 rm-r, ;
+: cmpsb, A6 c, ;  : cmpsw, A7 c, ;  : notw-r, F7 c, 2 rm-r, ;
 : [bx+si] 0 ;  : [bx+di] 1 ;  : [bp+si] 2 ;  : [bp+di] 3 ;
 : [si] 4 ;  : [di] 5 ;  : [#] 6 ;  : [bp] 6 ;  : [bx] 7 ;
 : m-r, 3shl + c, ;              : r-m, swap m-r, ;
@@ -56,10 +55,11 @@ variable pos                    : pos, pos @ ! 2 pos +! ;
 :code or   ax pop,  ax bx orw-rr,   next,
 :code and  ax pop,  ax bx andw-rr,  next,
 :code xor  ax pop,  ax bx xorw-rr,  next,
+:code emit  bx ax movw-rr,  0E ah movb-ir,  bx bx xorw-rr,
+  10 int,   bx pop,  next,
 : jz, 74 c, ;   : jnz, 75 c, ;
 : j> here 0 c, ;  : >j dup >r 1 + here swap - r> c! ;
 : j< here ;       : <j here 1 + - c, ;
-
 : :cmp  :code  ax ax xorw-rr, ;
 : cmp;  j> ax decw, >j  ax bx movw-rr,  next, ;              -->
 :cmp 0=  bx bx orw-rr, jnz, cmp;

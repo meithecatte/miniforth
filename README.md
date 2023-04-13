@@ -4,7 +4,7 @@
 The following standard words are available:
 
 ```
-- ! @ c! c@ dup swap emit u. >r r> : ; load
+- ! @ c! c@ dup swap u. >r r> : ; load
 ```
 
 Additionally, there are two non-standard words.
@@ -181,8 +181,8 @@ Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **462** bytes are used,
-leaving 48 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **450** bytes are used,
+leaving 60 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!
@@ -191,8 +191,6 @@ Byte saving leaderboard:
 
 If a feature is strongly desirable, potential tradeoffs include:
 
- - 12 bytes: Remove the `emit` word - we need loops to make good use of it, and
-   by that point we can assemble it ourselves.
  - 7 bytes: Don't push the addresses of variables kept by self-modifying code. This
    essentially changes the API with each edit (NOTE: it's 7 bytes because this makes it
    beneficial to keep `>IN` in the literal field of an instruction).
