@@ -181,8 +181,8 @@ Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **463** bytes are used,
-leaving 47 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **462** bytes are used,
+leaving 48 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!

@@ -85,7 +85,12 @@ start:
     ; since SPECIAL_BYTE, we only need to load half of FF E0 jmp ax
     mov ah, 0xe0
     stosw
-    call MakeLink
+
+    mov ax, di
+    xchg [byte bp-BP_POS+LATEST], ax  ; AX now points at the old entry, while
+                                 ; LATEST and DI point at the new one.
+    stosw
+
 .not_special:
     loop .decompress
 
@@ -225,14 +230,6 @@ ParseWord:
     mov [InputPtr], si
     lodsb
     jmp short .takeloop
-
-; Creates a dictionary linked list link at DI.
-MakeLink:
-    mov ax, di
-    xchg [byte bp-BP_POS+LATEST], ax  ; AX now points at the old entry, while
-                                 ; LATEST and DI point at the new one.
-    stosw
-    ret
 
 PutChar:
     xor bx, bx
@@ -389,7 +386,12 @@ defcode SWITCH, "|", F_IMMEDIATE
 defcode COLON, ":"
     pusha
     mov di, [byte bp-BP_POS+HERE]
-    call MakeLink
+
+    mov ax, di
+    xchg [byte bp-BP_POS+LATEST], ax  ; AX now points at the old entry, while
+                                 ; LATEST and DI point at the new one.
+    stosw
+
     call ParseWord
     mov ax, cx
     stosb
