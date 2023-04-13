@@ -60,7 +60,11 @@ if __name__ == "__main__":
         boot = f.read()
 
     blocks = {}
-    blocks[0] = uefix + boot
+    if boot[0x1be:0x1fe] == bytes(64):
+        blocks[0] = boot + bytes(512)
+    else:
+        print('Using the uefix chainloader to avoid overwriting code with the partition table')
+        blocks[0] = uefix + boot
 
     for bnum, fname in FILE_MAP:
         blocks_at(bnum, fname)
