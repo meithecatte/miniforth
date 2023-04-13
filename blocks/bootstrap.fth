@@ -1,4 +1,4 @@
-: >in a02 ; : run >in ! ;       swap : dp 0 | dup @ 2 - ! | ;
+: >in 7d00 ; : run >in ! ;       swap : dp 0 | dup @ 2 - ! | ;
 : drop  dup -  - ;
 : negate  0 swap - ;            : +  negate - ;
 : here dp @ ;  : cell+ 2 + ;  : cell- 2 - ;  : cells dup + ;

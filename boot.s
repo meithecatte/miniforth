@@ -30,7 +30,9 @@ F_LENMASK   equ 0x1f
 InputBuf equ 0x500
 BlockBuf equ 0x600
 BlockBuf.end equ 0xa00
-InputPtr  equ 0xa02 ; dw
+; we put it at 7d00, since that's in the middle of CompressedData,
+; which we effectively discard before the first access to InputPtr
+InputPtr  equ 0x7d00 ; dw
 RS0 equ 0xb00
 
 SPECIAL_BYTE equ 0xff
@@ -106,7 +108,7 @@ start:
 
 ReadLine:
     mov di, InputBuf
-    mov [InputPtr], di
+    mov [byte bp-BP_POS+InputPtr], di
 .loop:
     mov ah, 0
     int 0x16
@@ -207,7 +209,7 @@ Return:
 ; BX = numeric value
 ; clobbers SI
 ParseWord:
-    mov si, [InputPtr]
+    mov si, [byte bp-BP_POS+InputPtr]
     ; repe scasb would probably save some bytes here if the registers worked out - scasb
     ; uses DI instead of SI :(
 .skiploop:
@@ -231,7 +233,7 @@ ParseWord:
     cbw
     shl bx, 4
     add bx, ax
-    mov [InputPtr], si
+    mov [byte bp-BP_POS+InputPtr], si
     lodsb
     jmp short .takeloop
 
@@ -243,7 +245,7 @@ DiskPacket:
     ; rest is filled out at runtime, overwriting the compressed data,
     ; which isn't necessary anymore
 
-BP_POS equ $
+BP_POS equ $ - $$ + 0x7c00
 
 CompressedData:
     times COMPRESSED_SIZE db 0xcc
@@ -364,7 +366,7 @@ DRIVE_NUMBER equ $+1
 
 ;; Copies the rest of the line to buf.
 defcode LINE, "s:" ; ( buf -- buf+len )
-    xchg si, [InputPtr]
+    xchg si, [byte bp-BP_POS+InputPtr]
 .copy:
     lodsb
     mov [bx], al
@@ -374,7 +376,7 @@ defcode LINE, "s:" ; ( buf -- buf+len )
 .done:
     dec bx
     dec si
-    xchg si, [InputPtr]
+    xchg si, [byte bp-BP_POS+InputPtr]
 
 defcode SWITCH, "|", F_IMMEDIATE
     xor byte[byte bp-BP_POS+STATE], 1

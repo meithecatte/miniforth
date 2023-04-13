@@ -99,7 +99,7 @@ Due to space constraints, variables such as `STATE` or `BASE` couldn't be expose
 separate words. Depending on the variable, the address is either hardcoded or pushed onto
 the stack on boot:
 
- - `>IN` is a word at `0xa02`. It stores the pointer to the first unparsed character
+ - `>IN` is a word at `0x7d00`. It stores the pointer to the first unparsed character
    of the null-terminated input buffer.
  - The stack on boot is `LATEST STATE BASE HERE #DISK` (with `#DISK` on top).
  - `STATE` has a non-standard format - it is a byte, where `0` means compiling,
@@ -181,8 +181,8 @@ Git or GitHub's web interface. This disparity is handled by two Python scripts:
 
 ## Free bytes
 
-At this moment, not counting the `55 AA` signature at the end, **450** bytes are used,
-leaving 60 bytes for any potential improvements.
+At this moment, not counting the `55 AA` signature at the end, **445** bytes are used,
+leaving 65 bytes for any potential improvements.
 
 Byte saving leaderboard:
  - Ilya Kurdyukov saved 24 bytes. Thanks!
