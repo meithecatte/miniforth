@@ -31,7 +31,7 @@ load:
 
     mov dl, 0 ; drive (0 = floppy A:, 1 = floppy B:, 8 = HDD C:)
     mov dh, 0 ; head
-    mov cl, 1 ; sector
+    mov cl, 2 ; sector
     mov ch, 0 ; cylinder
     mov bx, 0x7c00 ; buffer
     int 0x13
