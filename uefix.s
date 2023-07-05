@@ -29,7 +29,7 @@ load:
     mov ah, 0x02 ; function, chs load sector
     mov al, 1 ; count sectors
 
-    mov dl, 0 ; drive (0 = floppy A:, 1 = floppy B:, 8 = HDD C:)
+    mov dl, 0 ; drive (0 = floppy A:, 1 = floppy B:, 80 = HDD C:)
     mov dh, 0 ; head
     mov cl, 2 ; sector
     mov ch, 0 ; cylinder
