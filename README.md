@@ -209,7 +209,7 @@ If a feature is strongly desirable, potential tradeoffs include:
    names on boot. This would take very little new code — the decompressor would simply have
    to borrow some code from `:`. However, reboots would become somewhat bothersome.
  - ?? bytes: Instead of providing `;` in the kernel, give a dictionary entry to `EXIT` and
-   terminate definitions with `\` |` until `immediate` and `;` can be defined.
+   terminate definitions with `\` `|` until `immediate` and `;` can be defined.
 
 [FORTH]: https://en.wikipedia.org/wiki/Forth_(programming_language)
 [blog]: https://compilercrim.es/bootstrap/
