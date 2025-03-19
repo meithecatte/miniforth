@@ -2,7 +2,8 @@
 ; SP = parameter stack pointer (grows downwards from 0x7c00 - just before the entrypoint)
 ; DI = return stack pointer (grows upwards from 0xc00)
 ; SI = execution pointer
-; BX = top of stack
+; BX = value at the top of the parameter stack (which is not saved in memory when executing
+;      threaded code)
 ;
 ; Dictionary structure:
 ; link: dw
@@ -163,17 +164,16 @@ LATEST equ $+1
     or si, si
     jnz short .find
 
-    ; It's a number. Push its value - we'll pop it later if it turns out we need to compile
-    ; it instead.
-    push bx
+    ; It's a number. Which mode are we in?
+
     ; At this point, AH is zero, since it contains the higher half of the pointer
     ; to the next word, which we know is NULL.
     cmp byte[byte bp-BP_POS+STATE], ah
-    jnz short InterpreterLoop
+    jnz short InterpreterLoopSaveBX
     ; Otherwise, compile the literal.
     mov ax, LIT
     call COMMA
-    pop ax
+    xchg ax, bx
 .compile:
     call COMMA
     jmp short InterpreterLoop
